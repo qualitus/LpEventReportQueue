@@ -259,32 +259,32 @@ class EventDataAggregationHelper
 
 	}
 
-	/**
-	 * Get parent container ref_id by matching container types
-	 *
-	 * @param int $ref_id
-	 * @param array $types
-	 * @return int
-	 */
-	public function getContainerRefIdByObjectRefIdAndTypes(int $ref_id, array $types = [], $eventtype = null): int
-	{
-		if (!isset($type) || empty($type)) {
-			$types = ['crs', 'grp', 'prg'];
-		}
-		$this->logger->debug(sprintf('called %s with ref_id %s and types: [%s]',
-			'getContainerRefIdByObjectRefIdAndTypes',
-			$ref_id,
-			implode(',', $types)
-		));
+    /**
+     * Get parent container ref_id by matching container types
+     *
+     * @param int $ref_id
+     * @param array $types
+     * @return int
+     */
+    public function getContainerRefIdByObjectRefIdAndTypes(int $ref_id, array $types = [], $eventtype = null) : int
+    {
+        if (empty($types)) {
+            $types = ['crs', 'grp', 'prg'];
+        }
 
-		$refObj = \ilObjectFactory::getInstanceByRefId($ref_id);
-		if ($refObj instanceof \ilObject && in_array($refObj->getType(), $types)) {
-			$cont_ref_id = $ref_id;
+        $this->logger->debug(sprintf('called %s with ref_id %s and types: [%s]',
+            'getContainerRefIdByObjectRefIdAndTypes',
+            $ref_id,
+            implode(',', $types)
+        ));
 
-		} else {
-			$cont_ref_id = $this->searchFirstParentRefIdByTypes($ref_id, $types);
-			if ($cont_ref_id === false || $cont_ref_id === 0) {
-			    if (!isset($eventtype) || $eventtype != 'toTrash') {
+        $refObj = \ilObjectFactory::getInstanceByRefId($ref_id);
+        if ($refObj instanceof \ilObject && in_array($refObj->getType(), $types)) {
+            $cont_ref_id = $ref_id;
+        } else {
+            $cont_ref_id = $this->searchFirstParentRefIdByTypes($ref_id, $types);
+            if ($cont_ref_id === 0) {
+                if (!isset($eventtype) || $eventtype !== 'toTrash') {
                     global $DIC;
                     $tree = $DIC->repositoryTree();
 
@@ -294,50 +294,50 @@ class EventDataAggregationHelper
                         foreach (array_reverse($paths) as $path) {
                             $this->logger->debug(sprintf('checking path item %s', $path['id']));
                             $cont_ref_id = $this->searchFirstParentRefIdByTypes($path['id'], $types);
-
-                            if ($cont_ref_id !== false && $cont_ref_id > 0) {
+                            if (is_int($cont_ref_id) && $cont_ref_id > 0) {
                                 break;
                             }
                         }
                     }
                 }
-			}
-		}
-		// return -1 if no container was found
-		if ($cont_ref_id === false || $cont_ref_id === 0) {
-			$this->logger->debug(sprintf('no container ref_id found'));
-			return -1;
-		}
+            }
+        }
+        // return -1 if no container was found
+        if ($cont_ref_id === 0) {
+            $this->logger->debug(sprintf('no container ref_id found'));
+            return -1;
+        }
 
-		$this->logger->debug(sprintf('container ref_id %s found', $cont_ref_id));
-		return $cont_ref_id;
-	}
+        $this->logger->debug(sprintf('container ref_id %s found', $cont_ref_id));
+        return $cont_ref_id;
+    }
 
-	/**
-	 * Search the first matching parent by a ref_id
-	 *
-	 * @param int $ref_id
-	 * @param array $types
-	 * @return int|bool
-	 */
-	private function searchFirstParentRefIdByTypes(int $ref_id, array $types)
-	{
-		global $DIC;
-		$tree = $DIC->repositoryTree();
-		$this->logger->debug(sprintf('called %s with ref_id %s and types: [%s]',
-			'searchFirstParentRefIdByTypes',
-			$ref_id,
-			$types
-		));
+    /**
+     * Search the first matching parent ref_id by the given types and the pased child ref_id
+     * @param int $ref_id
+     * @param string[] $types
+     * @return int
+     */
+    private function searchFirstParentRefIdByTypes(int $ref_id, array $types) : int
+    {
+        global $DIC;
 
-		foreach ($types as $type) {
-			$parent_type = $tree->checkForParentType($ref_id, $type);
-			if ($parent_type !== false && $parent_type > 0) {
-				break;
-			}
-		}
+        $tree = $DIC->repositoryTree();
 
-		return $parent_type;
-	}
+        $this->logger->debug(sprintf(
+            'called %s with ref_id %s and types: [%s]',
+            'searchFirstParentRefIdByTypes',
+            $ref_id,
+            print_r($types, true)
+        ));
 
+        foreach ($types as $type) {
+            $parent_ref_id = $tree->checkForParentType($ref_id, $type);
+            if (is_numeric($parent_ref_id) && $parent_ref_id > 0) {
+                return (int) $parent_ref_id;
+            }
+        }
+
+        return 0;
+    }
 }
