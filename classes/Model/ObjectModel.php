@@ -264,6 +264,9 @@ class ObjectModel
 				case 'sahs':
 					return 'SAHSLearningModule';
 					break;
+				case 'sess':
+					return 'Session';
+					break;
 				case 'trac':
 					return 'UserTracking';
 					break;

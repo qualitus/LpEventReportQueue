@@ -62,6 +62,7 @@ abstract class AbstractEvent implements EventInterface
 				->setEvent($data['event'])
 				->setEventType($this->mapEventToType($data['event']))
 				->setProgress($data['progress'])
+				->setProgressChanged($data['progress_changed'])
 				->setAssignment($data['assignment']);
 
 			if (array_key_exists('lpperiod', $data) && !empty($data['lpperiod'])) {
@@ -237,8 +238,8 @@ abstract class AbstractEvent implements EventInterface
 	{
 		$insert = 'INSERT INTO `' . self::DB_TABLE . '` ';
 		$insert .= '(`id`, `timestamp`, `event`, `event_type`, `progress`, `assignment`, ';
-		$insert .= '`course_start`, `course_end`, `user_data`, `obj_data`, `mem_data`) ';
-		$insert .= 'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ';
+		$insert .= '`course_start`, `course_end`, `user_data`, `obj_data`, `mem_data`, `progress_changed`) ';
+		$insert .= 'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ';
 
 		$types = [
 			'integer',
@@ -250,9 +251,10 @@ abstract class AbstractEvent implements EventInterface
 			'integer',
 			'integer',
 			'text',
-			'text',
-			'text',
-		];
+            'text',
+            'text',
+            'integer',
+        ];
 
 		$values = [
 			$this->database->nextId(self::DB_TABLE),
@@ -266,6 +268,7 @@ abstract class AbstractEvent implements EventInterface
 			$queueModel->getUserData()->__toString(),
 			$queueModel->getObjData()->__toString(),
 			$queueModel->getMemData()->__toString(),
+            $queueModel->getProgressChanged(false),
 		];
 
 

@@ -1,5 +1,15 @@
 # LpEventReportQueue Plugin
 
+![Min ILIAS Version](https://img.shields.io/badge/Min_ILIAS-5.3.x-orange)
+![Recommended ILIAS Version](https://img.shields.io/badge/Recommended_ILIAS-5.4.x-yellowgreen)
+![Max ILIAS Version](https://img.shields.io/badge/Max_ILIAS-5.4.x-orange)
+
+![PHP Version](https://img.shields.io/badge/PHP-%3E%3D7.0-blue)
+![Plugin Slot](https://img.shields.io/badge/Slot-CronHook-blue)
+
+![Plugin Version](https://img.shields.io/badge/plugin_version-1.4.0-blue)
+
+
 **Table of Contents**
 
 * [Installation](#installation)

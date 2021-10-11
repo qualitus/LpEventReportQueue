@@ -21,6 +21,8 @@ class QueueModel
 	/** @var string */
 	private $progress;
 	/** @var string */
+	private $progress_changed;
+	/** @var string */
 	private $assignment;
 	/** @var string */
 	private $course_start;
@@ -55,21 +57,35 @@ class QueueModel
 	 * @param bool $iso		Get as ISO 8601 timestamp
 	 * @return string|int|null
 	 */
-	public function getTimestamp($iso = false)
+	public function getTimestamp($iso = false, $timezone = 'UTC')
 	{
 		if ($iso) {
-			return (isset($this->timestamp) ? date('c', $this->timestamp) : '');
+			if ($timestamp = (isset($this->timestamp) ? $this->timestamp : false)) {
+				$dt = new \DateTime();
+				if (is_numeric($timestamp)) {
+					$dt->setTimestamp($timestamp * 1);
+				} else {
+					$dt->setTimestamp(strtotime($timestamp));
+				}
+				$dt->setTimezone(new \DateTimeZone($timezone));
+				return $dt->format('c');
+			}
+			return '';
 		}
 		return (isset($this->timestamp) ? $this->timestamp : NULL);
 	}
 
 	/**
-	 * @param string $timestamp
+	 * @param int|string $timestamp
 	 * @return QueueModel
 	 */
 	public function setTimestamp($timestamp): QueueModel
 	{
-		$this->timestamp = $timestamp;
+		if (is_numeric($timestamp)) {
+			$this->timestamp = $timestamp*1;
+		} else {
+			$this->timestamp = strtotime($timestamp);
+		}
 		return $this;
 	}
 
@@ -126,6 +142,27 @@ class QueueModel
 		$this->progress = $progress;
 		return $this;
 	}
+
+    /**
+     * @return string|int|null
+     */
+    public function getProgressChanged($iso = false)
+    {
+        if ($iso) {
+            return (isset($this->progress_changed) ? date('c', $this->progress_changed) : '');
+        }
+        return (isset($this->progress_changed) ? $this->progress_changed : NULL);
+    }
+
+    /**
+     * @param string $progress_changed
+     * @return QueueModel
+     */
+    public function setProgressChanged($progress_changed): QueueModel
+    {
+        $this->progress_changed = $progress_changed;
+        return $this;
+    }
 
 	/**
 	 * @return string
@@ -250,10 +287,11 @@ class QueueModel
 	{
 		return json_encode([
 			'id' => $this->getId(),
-			'timestamp' => $this->getTimestamp(),
+			'timestamp' => $this->getTimestamp(true),
 			'event' => $this->getEvent(),
 			'event_type' => $this->getEventType(),
 			'progress' => $this->getProgress(),
+			'progress_changed' => $this->getProgressChanged(),
 			'assignment' => $this->getAssignment(),
 			'course_start' => $this->getCourseStart(),
 			'course_end' => $this->getCourseEnd(),

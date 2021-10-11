@@ -45,7 +45,7 @@ class SettingsModel
 		if (array_key_exists($keyword, $this->items)) {
 			return $this->items[$keyword];
 		}
-		return false;
+		return new SettingsItemModel($keyword);
 	}
 
 	/**

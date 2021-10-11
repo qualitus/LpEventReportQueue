@@ -60,8 +60,10 @@ class Processor
 		foreach ($this->routines as $routine => $provider) {
 			$this->logger->debug('capturing ' . $routine);
 
-			if (count($provider) > 0) {
-				$provider = array_reverse($provider);
+			if (is_array($provider) && count($provider) > 0) {
+			    if (count($provider) > 1) {
+                    $provider = array_reverse($provider);
+                }
 
 				try {
 					$collect_func = lcfirst($routine);

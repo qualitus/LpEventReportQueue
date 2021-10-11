@@ -45,6 +45,10 @@ class FilterObject // @todo check filter rules
 	private $event;
 	/** @var bool */
 	private $negative_pager;
+	/** @var string */
+	private $progress_changed;
+	/** @var int */
+	private $progress_changed_direction;
 
 	/**
 	 * @return int
@@ -288,6 +292,34 @@ class FilterObject // @todo check filter rules
 		$this->negative_pager = $negative_pager;
 		return $this;
 	}
+
+
+    /**
+     * @return int
+     */
+    public function getProgressChangedDirection(): int
+    {
+        return $this->progress_changed_direction;
+    }
+
+    /**
+     * @return string|bool
+     */
+    public function getProgressChanged()
+    {
+        return (isset($this->progress_changed) ? $this->progress_changed : false);
+    }
+
+    /**
+     * @param string $course_start UTC Timestamp
+     * @return FilterObject
+     */
+    public function setProgressChanged(string $progress_changed, int $before_after = self::TIME_AFTER): FilterObject
+    {
+        $this->progress_changed = $progress_changed;
+        $this->progress_changed_direction = $before_after;
+        return $this;
+    }
 
 
 }

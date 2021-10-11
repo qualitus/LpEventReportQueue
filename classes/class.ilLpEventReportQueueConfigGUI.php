@@ -136,7 +136,9 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 		$form->setTitle($this->plugin->txt('queue_initialization'));
 
 		$task_info = json_decode($this->settings->get(QueueInitializationJobDefinition::JOB_TABLE, '{}'), true);
+
 		if(!$this->wasInitializationStarted($task_info)) {
+            // initialization was NOT started yet
 			$ne = new \ilNonEditableValueGUI('', 'start_initialization_by_click_first');
 			$ne->setValue($this->plugin->txt('start_initialization_by_click_first'));
 			$ne->setInfo(sprintf($this->plugin->txt('start_initialization_by_click_info'), $this->plugin->txt("start_initialization")));
@@ -145,6 +147,7 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 			$form->addCommandButton("startInitialization", $this->plugin->txt("start_initialization"));
 
 		} else if($this->canInitializationStart($task_info)) {
+            // initialization is NOT in state RUNNING, FINISHED or STARTED
 			$ne = new \ilNonEditableValueGUI('', 'start_initialization_by_click');
 			$ne->setValue($this->plugin->txt('start_initialization_by_click'));
 			$ne->setInfo(sprintf($this->plugin->txt('start_initialization_by_click_info'), $this->plugin->txt("start_initialization")));
@@ -152,19 +155,27 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 
 			$form->addCommandButton("startInitialization", $this->plugin->txt("start_initialization"));
 
-		}
-
-		if($this->hasInitializationFailed($task_info) || $this->hasInitializationFinished($task_info)) {
+		} else if($this->hasInitializationFailed($task_info) || $this->hasInitializationFinished($task_info)) {
+            // initialization has failed or is finished
 			$ne = new \ilNonEditableValueGUI('', 'show_initialization_status');
 			$ne->setValue($this->plugin->txt('show_initialization_status'));
 			$ne->setInfo(sprintf($this->plugin->txt('show_initialization_status_info'), $task_info['state']));
 			$form->addItem($ne);
 
-			global $DIC;
-			if ($DIC->user()->getId() == 6) {
-				$form->addCommandButton("resetQueue", $this->lng->txt("reset"));
-			}
-		}
+		} else if ($this->isInitializationRunning($task_info)) {
+            // initialization is currently running
+            $ne = new \ilNonEditableValueGUI('', 'show_initialization_running');
+            $ne->setValue($this->plugin->txt('show_initialization_running'));
+            $ne->setInfo(sprintf($this->plugin->txt('show_initialization_running_info'), $task_info['state']));
+            $form->addItem($ne);
+        }
+
+        if($this->hasInitializationFailed($task_info) || $this->hasInitializationFinished($task_info)) {
+            global $DIC;
+            if ($DIC->user()->getId() == 6) {
+                $form->addCommandButton("resetQueue", $this->lng->txt("reset"));
+            }
+        }
 
 		$form->setFormAction($this->ctrl->getFormAction($this));
 		$this->tpl->setContent($form->getHTML());
@@ -387,7 +398,17 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 
 		global $DIC;
 		$DIC->database()->manipulate('DELETE FROM ' . AbstractEvent::DB_TABLE . ' WHERE true;');
-		$this->settings->set(QueueInitializationJobDefinition::JOB_TABLE, '{}');
+        $task_info = [
+            'lock' => false,
+            'state' => 'not started',
+            'found_items' => 0,
+            'processed_items' => 0,
+            'progress' => 0,
+            'started_ts' => strtotime('now'),
+            'finished_ts' => null,
+            'last_item' => 0,
+        ];
+        $DIC->settings()->set('lerq_bgtask_init', json_encode($task_info));
 
 		$this->plugin->activate();
 
@@ -421,6 +442,18 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 				QueueInitializationJobDefinition::JOB_STATE_RUNNING,
 				QueueInitializationJobDefinition::JOB_STATE_STARTED
 			]));
+	}
+
+	/**
+	 * @param array $task_info
+	 * @return bool
+	 */
+	public function isInitializationRunning($task_info = []): bool
+	{
+		return (
+			!empty($task_info) &&
+            $task_info['state'] !== QueueInitializationJobDefinition::JOB_STATE_RUNNING
+        );
 	}
 
 	/**

@@ -84,6 +84,8 @@ interface Facade
 	 *   Filter for user assignment role (this locks eventType filter to 'member_event')
 	 * ->setEvent(string $event)
 	 *   Filter for Event
+     * ->setProgressChanged(string $progress_changed, int $before_after)
+     *   Filter for last progress change (UTC Timestamp)
 	 *
 	 * @return Filter\FilterObject
 	 */

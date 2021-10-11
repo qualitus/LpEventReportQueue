@@ -9,6 +9,8 @@ start_initialization_by_click#:#Die initiale Befüllung wurde nicht korrekt been
 start_initialization_by_click_info#:#Klicken Sie auf "%s" um die initiale Befüllung zu starten.
 show_initialization_status#:#Die initiale Befüllung wurde bereits ausgeführt.
 show_initialization_status_info#:#Status der initialen Befüllung: %s
+show_initialization_running#:#Die initiale Befüllung wird aktuell ausgeführt
+show_initialization_running_info#:#Status der initialen Befüllung: %s
 start_initialization#:#Starten
 queue_reset_confirm#:#Die Queue wurde geleert.
 user_data#:#Benutzerdaten Auswahl

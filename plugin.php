@@ -1,9 +1,9 @@
 <?php
 
 $id = "lpeventreportqueue";
-$version = "1.0.5";
+$version = "1.4.0";
 $ilias_min_version = "5.3.0";
-$ilias_max_version = "5.4.999";
+$ilias_max_version = "6.999";
 $responsible = "Ralph Dittrich";
 $responsible_mail = "dittrich@qualitus.de";
 $git_path = 'git@git.qualitus.de:ilias-plugins/LpEventReportQueue.git';

@@ -9,6 +9,8 @@ start_initialization_by_click#:#The initial queue collection was not processed s
 start_initialization_by_click_info#:#Click "%s" to start the initial queue collection process.
 show_initialization_status#:#The initial queue collection process was already executed.
 show_initialization_status_info#:#State of the process: %s
+show_initialization_running#:#The initial queue collection process is currently running
+show_initialization_running_info#:#State of the process: %s
 start_initialization#:#Start
 queue_reset_confirm#:#Queue was cleared
 user_data#:#User data
