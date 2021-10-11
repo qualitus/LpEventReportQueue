@@ -47,3 +47,14 @@ obj_select#:#Track objects
 obj_all#:#All objects
 obj_only_course#:#Only courses
 saving_invoked#:#Successful saved
+queue_protocol#:#Protocol
+tbl_col_event_id#:#Event Id
+tbl_col_event_timestamp#:#Event Timestamp
+tbl_col_event_type#:#Event Type
+tbl_col_event#:#Event
+tbl_col_event_subject_id#:#User ID
+tbl_col_event_subject_title#:#Username
+tbl_col_event_object_id#:#Object ID
+tbl_col_event_object_ref_id#:#Reference ID
+tbl_col_event_object_title#:#Object Title
+tbl_filter_event_query#:#Free Text
