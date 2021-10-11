@@ -47,3 +47,14 @@ obj_select#:#Objekte erfassen
 obj_all#:#Alle Objekte
 obj_only_course#:#Nur Kurse
 saving_invoked#:#Speichern erfolgreich
+queue_protocol#:#Protokoll
+tbl_col_event_id#:#Event-ID
+tbl_col_event_timestamp#:#Ereigniszeitpunkt
+tbl_col_event_type#:#Art des Events
+tbl_col_event#:#Ereignis
+tbl_col_event_subject_id#:#Benutzer-ID
+tbl_col_event_subject_title#:#Benutzername
+tbl_col_event_object_id#:#Objekt-ID
+tbl_col_event_object_ref_id#:#Objekt-Referenz-ID
+tbl_col_event_object_title#:#Objekttitel
+tbl_filter_event_query#:#Freitext

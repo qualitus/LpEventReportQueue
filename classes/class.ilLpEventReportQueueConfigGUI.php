@@ -1,13 +1,14 @@
 <?php
 /* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
 
-include_once("./Services/Component/classes/class.ilPluginConfigGUI.php");
 include_once("./Customizing/global/plugins/Services/Cron/CronHook/LpEventReportQueue/classes/BackgroundTasks/class.ilQueueInitialization.php");
 include_once("./Customizing/global/plugins/Services/Cron/CronHook/LpEventReportQueue/classes/BackgroundTasks/class.ilQueueInitializationJob.php");
 
 use \ILIAS\BackgroundTasks\Implementation\Bucket\BasicBucket;
 use \QU\LERQ\BackgroundTasks\QueueInitializationJobDefinition;
 use \QU\LERQ\Events\AbstractEvent;
+use QU\LERQ\Queue\Protocol\ProtocolTable;
+use QU\LERQ\Queue\Protocol\ProtocolTableProvider;
 
 /**
  * Class ilLpEventReportQueueConfigGUI
@@ -39,6 +40,9 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 	/** @var string */
 	protected $active_tab;
 
+    /** @var \ILIAS\DI\UIServices */
+    protected $uiServices;
+
 	/**
 	 * @return void
 	 */
@@ -52,6 +56,7 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 		$this->tpl = $DIC["tpl"];
 		$this->tabs = $DIC->tabs();
 		$this->settings = $DIC->settings();
+		$this->uiServices = $DIC->ui();
 		if (null === $this->backgroundTasks) {
 			$this->backgroundTasks = $DIC->backgroundTasks();
 		}
@@ -78,6 +83,18 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 						$this->tabs->activateTab('initialization');
 						$this->initialization();
 						break;
+                    case "applyProtocolFilter":
+                        $this->tabs->activateTab('showProtocol');
+                        $this->applyProtocolFilter();
+                        break;
+                    case "resetProtocolFilter":
+                        $this->tabs->activateTab('showProtocol');
+                        $this->resetProtocolFilter();
+                        break;
+                    case "showProtocol":
+                        $this->tabs->activateTab('showProtocol');
+                        $this->showProtocol();
+                        break;
 					default:
 						$cmd .= 'Cmd';
 						$this->$cmd();
@@ -92,13 +109,19 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 	 */
 	public function getTabs(): array
 	{
+        $i = 0;
 		return [
-			0 => [
+			$i++ => [
 				'id' => 'configure',
 				'txt' => $this->plugin->txt('configuration'),
 				'cmd' => 'configure',
 			],
-			1 => [
+            $i++ => [
+                'id' => 'showProtocol',
+                'txt' => $this->plugin->txt('queue_protocol'),
+                'cmd' => 'showProtocol',
+            ],
+            $i++ => [
 				'id' => 'initialization',
 				'txt' => $this->plugin->txt('queue_initialization'),
 				'cmd' => 'initialization',
@@ -416,6 +439,45 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 		$this->ctrl->redirect($this, 'configure');
 		return;
 	}
+
+    private function getProtocolTable() : ProtocolTable
+    {
+        $table = new ProtocolTable(
+            $this,
+            $this->plugin,
+            $this->uiServices,
+            'showProtocol'
+        );
+
+        return $table;
+    }
+
+    private function applyProtocolFilter() : void
+    {
+        $table = $this->getProtocolTable();
+        $table->resetOffset();
+        $table->writeFilterToSession();
+
+        $this->showProtocol();
+    }
+
+    private function resetProtocolFilter() : void
+    {
+        $table = $this->getProtocolTable();
+        $table->resetOffset();
+        $table->resetFilter();
+
+        $this->showProtocol();
+    }
+
+    private function showProtocol() : void
+    {
+        $table = $this->getProtocolTable()
+            ->withProvider(new ProtocolTableProvider($GLOBALS['DIC']->database()))
+            ->populate();
+        
+        $this->tpl->setContent($table->getHtml());
+    }
 
 	/**
 	 * @param array $task_info
