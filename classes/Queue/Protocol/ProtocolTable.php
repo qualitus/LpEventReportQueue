@@ -348,8 +348,6 @@ class ProtocolTable extends Base
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_id'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_ref_id'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_title'));
-        $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_title'));
-        $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_title'));
         $a_csv->addColumn('user_data');
         $a_csv->addColumn('obj_data');
         $a_csv->addColumn('mem_data');
