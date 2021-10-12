@@ -47,6 +47,7 @@ class ProtocolTableProvider extends DatabaseProvider
 
         if (isset($filter['query']) && is_string($filter['query']) && $filter['query'] !== '') {
             $whereConjunctions[] = '(' . implode(' OR ', [
+                $this->db->like('lerqq.user_data', ilDBConstants::T_TEXT, '%' . $filter['query'] . '%'),
                 $this->db->like('lerqq.mem_data', ilDBConstants::T_TEXT, '%' . $filter['query'] . '%'),
                 $this->db->like('lerqq.obj_data', ilDBConstants::T_TEXT, '%' . $filter['query'] . '%'),
             ]) . ')';
