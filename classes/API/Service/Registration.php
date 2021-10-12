@@ -143,7 +143,7 @@ class Registration
 
 
 	/**
-	 * @return array
+	 * @return ProviderModel[]
 	 */
 	private function _load(): array
 	{

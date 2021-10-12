@@ -58,3 +58,5 @@ tbl_col_event_object_id#:#Objekt-ID
 tbl_col_event_object_ref_id#:#Objekt-Referenz-ID
 tbl_col_event_object_title#:#Objekttitel
 tbl_filter_event_query#:#Freitext
+queue_providers#:#Provider
+tbl_col_has_overrides#:#Eigene Verarbeitungsmechanismen

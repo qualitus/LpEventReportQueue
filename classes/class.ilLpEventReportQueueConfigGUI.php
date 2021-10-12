@@ -5,6 +5,8 @@ include_once("./Customizing/global/plugins/Services/Cron/CronHook/LpEventReportQ
 include_once("./Customizing/global/plugins/Services/Cron/CronHook/LpEventReportQueue/classes/BackgroundTasks/class.ilQueueInitializationJob.php");
 
 use \ILIAS\BackgroundTasks\Implementation\Bucket\BasicBucket;
+use QU\LERQ\API\ProviderTable;
+use QU\LERQ\API\ProviderTableProvider;
 use \QU\LERQ\BackgroundTasks\QueueInitializationJobDefinition;
 use \QU\LERQ\Events\AbstractEvent;
 use QU\LERQ\Queue\Protocol\ProtocolTable;
@@ -95,6 +97,10 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
                         $this->tabs->activateTab('showProtocol');
                         $this->showProtocol();
                         break;
+                    case "showProviders":
+                        $this->tabs->activateTab('showProviders');
+                        $this->showProviders();
+                        break;
 					default:
 						$cmd .= 'Cmd';
 						$this->$cmd();
@@ -120,6 +126,11 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
                 'id' => 'showProtocol',
                 'txt' => $this->plugin->txt('queue_protocol'),
                 'cmd' => 'showProtocol',
+            ],
+            $i++ => [
+                'id' => 'showProviders',
+                'txt' => $this->plugin->txt('queue_providers'),
+                'cmd' => 'showProviders',
             ],
             $i++ => [
 				'id' => 'initialization',
@@ -476,6 +487,19 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
             ->withProvider(new ProtocolTableProvider($GLOBALS['DIC']->database()))
             ->populate();
         
+        $this->tpl->setContent($table->getHtml());
+    }
+    
+    private function showProviders() : void
+    {
+        $table = (new ProviderTable($this,
+            $this->plugin,
+            $this->uiServices,
+            'showProviders')
+        )
+            ->withProvider(new ProviderTableProvider())
+            ->populate();
+
         $this->tpl->setContent($table->getHtml());
     }
 

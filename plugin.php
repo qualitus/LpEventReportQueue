@@ -2,7 +2,7 @@
 
 $id = "lpeventreportqueue";
 $version = "1.4.0";
-$ilias_min_version = "6.0";
+$ilias_min_version = "5.4.0";
 $ilias_max_version = "7.999";
 $responsible = "Ralph Dittrich";
 $responsible_mail = "dittrich@qualitus.de";

@@ -1,6 +1,6 @@
 # LpEventReportQueue Plugin
 
-![Min ILIAS Version](https://img.shields.io/badge/Min_ILIAS-6.x-orange)
+![Min ILIAS Version](https://img.shields.io/badge/Min_ILIAS-5.4.x-orange)
 ![Recommended ILIAS Version](https://img.shields.io/badge/Recommended_ILIAS-7.x-yellowgreen)
 ![Max ILIAS Version](https://img.shields.io/badge/Max_ILIAS-7.x-orange)
 
