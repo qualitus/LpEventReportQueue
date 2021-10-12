@@ -17,7 +17,7 @@
  ********************************************************************
  */
 
-namespace QU\LERQ\Queue\Protocol\Table\Formatter;
+namespace QU\LERQ\API\Table\Formatter;
 
 use QU\LERQ\UI\Table\Formatter;
 

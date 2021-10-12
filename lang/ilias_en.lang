@@ -58,3 +58,5 @@ tbl_col_event_object_id#:#Object ID
 tbl_col_event_object_ref_id#:#Reference ID
 tbl_col_event_object_title#:#Object Title
 tbl_filter_event_query#:#Free Text
+queue_providers#:#Provider
+tbl_col_has_overrides#:#Overrides Collection Process
