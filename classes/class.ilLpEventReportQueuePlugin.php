@@ -137,13 +137,6 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
 	}
 
 	/**
-	 * @return void
-	 */
-	protected function afterDeactivation() {
-		// Do something
-	}
-
-	/**
 	 * @return bool
 	 */
 	protected function beforeUninstall() {
@@ -170,6 +163,9 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
 			$db->dropTable('lerq_settings');
 		}
 		$this->settings->delete('lerq_first_start');
+        $DIC->settings()->delete('lerq_first_start');
+        $this->settings->delete('lerq_bgtask_init');
+        $DIC->settings()->delete('lerq_bgtask_init');
 
 		return true;
 	}
@@ -182,6 +178,13 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
 	 */
 	public function handleEvent($a_component, $a_event, $a_params)
 	{
+	    if (!$this->isActive()) {
+	        return true;
+        }
+        $pl_settings = new \QU\LERQ\Model\SettingsModel();
+	    if ( "1" != $pl_settings->getItem('user_fields')->getValue() ) {
+	        return true;
+        }
 		switch($a_component)
 		{
 			case "Modules/Course":
@@ -225,7 +228,7 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
 				 */
 				break;
 			case "Modules/Excercise":
-				$this->debuglog($a_component, $a_event, $a_params);
+//				$this->debuglog($a_component, $a_event, $a_params);
 //				switch ($a_event) {
 //					case 'createAssignment':
 //						$handler = new \QU\LERQ\Events\MemberEvent();
@@ -258,7 +261,7 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
 				 */
 				break;
 			case "Modules/StudyProgramme":
-				$this->debuglog($a_component, $a_event, $a_params);
+//				$this->debuglog($a_component, $a_event, $a_params);
 //				switch ($a_event) {
 //					case 'userAssigned':
 //						$handler = new \QU\LERQ\Events\MemberEvent();
@@ -388,40 +391,53 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
 	 */
 	private function initSettings()
 	{
+	    global $DIC;
 		$pl_settings = new \QU\LERQ\Model\SettingsModel();
 
 		$pl_settings
 			->addItem('user_fields', true)
 			->addItem('user_id', true)
 			->addItem('login', true)
-			->addItem('firstname', true)
-			->addItem('lastname', true)
-			->addItem('title', true)
-			->addItem('gender', true)
+			->addItem('firstname', false)
+			->addItem('lastname', false)
+			->addItem('title', false)
+			->addItem('gender', false)
 			->addItem('email', true)
-			->addItem('institution', true)
-			->addItem('street', true)
-			->addItem('city', true)
-			->addItem('country', true)
-			->addItem('phone_office', true)
-			->addItem('hobby', true)
-			->addItem('department', true)
-			->addItem('phone_home', true)
-			->addItem('phone_mobile', true)
-			->addItem('fax', true)
-			->addItem('referral_comment', true)
-			->addItem('matriculation', true)
-			->addItem('active', true)
-			->addItem('approval_date', true)
-			->addItem('agree_date', true)
-			->addItem('auth_mode', true)
+			->addItem('institution', false)
+			->addItem('street', false)
+			->addItem('city', false)
+			->addItem('country', false)
+			->addItem('phone_office', false)
+			->addItem('hobby', false)
+			->addItem('department', false)
+			->addItem('phone_home', false)
+			->addItem('phone_mobile', false)
+			->addItem('fax', false)
+			->addItem('referral_comment', false)
+			->addItem('matriculation', false)
+			->addItem('active', false)
+			->addItem('approval_date', false)
+			->addItem('agree_date', false)
+			->addItem('auth_mode', false)
 			->addItem('ext_account', true)
-			->addItem('birthday', true)
+			->addItem('birthday', false)
 			->addItem('import_id', true)
-			->addItem('udf_fields', true)
+			->addItem('udf_fields', false)
 			->addItem('obj_select', '*');
 
-		$this->settings->set('lerq_first_start', false);
+		$this->settings->set('lerq_first_start', (int) false);
+
+        $task_info = [
+            'lock' => false,
+            'state' => 'not started',
+            'found_items' => 0,
+            'processed_items' => 0,
+            'progress' => 0,
+            'started_ts' => strtotime('now'),
+            'finished_ts' => null,
+            'last_item' => 0,
+        ];
+		$DIC->settings()->set('lerq_bgtask_init', json_encode($task_info));
 	}
 
 	/**

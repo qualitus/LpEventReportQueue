@@ -301,13 +301,15 @@ class Routines implements DataCaptureRoutinesInterface
 			if ($parent_type === false || $parent_type === 0) {
 				// walk tree and check if parent object of any node is type course
 				$paths = $tree->getPathFull($ref_id);
-				foreach (array_reverse($paths) as $path) {
-					$parent_type = $tree->checkForParentType($path['id'], 'crs');
-					if ($parent_type !== false && $parent_type > 0) {
-						$parent = $path['id'];
-						break;
-					}
-				}
+				if (is_array($paths) && count($paths) > 0) {
+                    foreach (array_reverse($paths) as $path) {
+                        $parent_type = $tree->checkForParentType($path['id'], 'crs');
+                        if ($parent_type !== false && $parent_type > 0) {
+                            $parent = $path['id'];
+                            break;
+                        }
+                    }
+                }
 			} else {
 				$parent = $parent_type;
 			}
@@ -354,8 +356,9 @@ class Routines implements DataCaptureRoutinesInterface
 		if (!empty($ref) && array_key_exists('ref_id', $ref[0])) {
 			$set['ref_id'] = ($ref[0]['ref_id'] *1);
 		}
+
 		if (!$is_course) {
-			$set['course_ref_id'] = $this->findParentCourse($set['ref_id']);
+			$set['course_ref_id'] = $this->findParentCourse(($set['ref_id'] === 0 ? null : $set['ref_id']));
 		} else {
 			$set['course_ref_id'] = $set['ref_id'];
 		}

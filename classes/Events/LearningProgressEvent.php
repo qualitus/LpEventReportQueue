@@ -4,6 +4,7 @@ namespace QU\LERQ\Events;
 
 include_once './Services/Tracking/classes/class.ilLPStatus.php';
 
+use QU\LERQ\Helper\EventDataAggregationHelper;
 use QU\LERQ\Model\EventModel;
 use QU\LERQ\Queue\Processor;
 
@@ -44,35 +45,34 @@ class LearningProgressEvent extends AbstractEvent implements EventInterface
 
 		$data = $processor->capture($event);
 		$data['timestamp'] = time();
+		$data['progress_changed'] = time();
 		$data['event'] = $this->mapInitEvent($a_event);
-		$data['progress'] = $this->mapLpStatus($a_params['status']);
-		$data['assignment'] = NULL;
+
+		$eventDataAggregator = EventDataAggregationHelper::singleton();
+		$data['progress'] = $eventDataAggregator->getLpStatusRepresentation($a_params['status']);
+        if (substr($a_event, 0, 5) === 'init_') {
+            $td = $eventDataAggregator->getLpStatusChangedByUsrAndObjId($a_params['usr_id'], $a_params['obj_id']);
+            $data['timestamp'] = ($td > 0 ? $td : $data['timestamp']);
+        }
+		$data['assignment'] = '-';
+		if ($data['memberdata']['role'] !== NULL) {
+			$data['assignment'] = $eventDataAggregator->getRoleTitleByRoleId($data['memberdata']['role']);
+		} else {
+			$ref_id = ($event->getRefId() > 0 ? $event->getRefId() : (
+				$data['memberdata']['course_ref_id'] > 0 ? $data['memberdata']['course_ref_id'] : 0
+			));
+			if ($ref_id > 0) {
+				$assignment = $eventDataAggregator->getParentContainerAssignmentRoleForObjectByRefIdAndUserId(
+					$ref_id,
+					$event->getUsrId()
+				);
+				if ($assignment != -1) {
+					$data['assignment'] = $eventDataAggregator->getRoleTitleByRoleId($assignment);
+				}
+			}
+		}
 
 		return $this->save($data);
-	}
-
-	/**
-	 * @param int $status
-	 * @return string
-	 */
-	private function mapLpStatus(int $status): string
-	{
-		$lpStatus = '';
-		switch ($status) {
-			case \ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM:
-				$lpStatus = 'no_attempted';
-				break;
-			case \ilLPStatus::LP_STATUS_IN_PROGRESS_NUM:
-				$lpStatus = 'in_progress';
-				break;
-			case \ilLPStatus::LP_STATUS_COMPLETED_NUM:
-				$lpStatus = 'completed';
-				break;
-			case \ilLPStatus::LP_STATUS_FAILED_NUM:
-				$lpStatus = 'failed';
-				break;
-		}
-		return $lpStatus;
 	}
 
 }

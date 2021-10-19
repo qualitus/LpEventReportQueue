@@ -11,7 +11,7 @@ namespace QU\LERQ\Model;
 class SettingsItemModel
 {
 	/** @var string */
-	protected $keyword;
+	protected $keyword = '';
 
 	/** @var string */
 	protected $type;

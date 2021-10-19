@@ -1,13 +1,16 @@
 <?php
 /* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
 
-include_once("./Services/Component/classes/class.ilPluginConfigGUI.php");
 include_once("./Customizing/global/plugins/Services/Cron/CronHook/LpEventReportQueue/classes/BackgroundTasks/class.ilQueueInitialization.php");
 include_once("./Customizing/global/plugins/Services/Cron/CronHook/LpEventReportQueue/classes/BackgroundTasks/class.ilQueueInitializationJob.php");
 
 use \ILIAS\BackgroundTasks\Implementation\Bucket\BasicBucket;
+use QU\LERQ\API\ProviderTable;
+use QU\LERQ\API\ProviderTableProvider;
 use \QU\LERQ\BackgroundTasks\QueueInitializationJobDefinition;
 use \QU\LERQ\Events\AbstractEvent;
+use QU\LERQ\Queue\Protocol\ProtocolTable;
+use QU\LERQ\Queue\Protocol\ProtocolTableProvider;
 
 /**
  * Class ilLpEventReportQueueConfigGUI
@@ -39,6 +42,9 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 	/** @var string */
 	protected $active_tab;
 
+    /** @var \ILIAS\DI\UIServices */
+    protected $uiServices;
+
 	/**
 	 * @return void
 	 */
@@ -52,6 +58,7 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 		$this->tpl = $DIC["tpl"];
 		$this->tabs = $DIC->tabs();
 		$this->settings = $DIC->settings();
+		$this->uiServices = $DIC->ui();
 		if (null === $this->backgroundTasks) {
 			$this->backgroundTasks = $DIC->backgroundTasks();
 		}
@@ -78,6 +85,22 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 						$this->tabs->activateTab('initialization');
 						$this->initialization();
 						break;
+                    case "applyProtocolFilter":
+                        $this->tabs->activateTab('showProtocol');
+                        $this->applyProtocolFilter();
+                        break;
+                    case "resetProtocolFilter":
+                        $this->tabs->activateTab('showProtocol');
+                        $this->resetProtocolFilter();
+                        break;
+                    case "showProtocol":
+                        $this->tabs->activateTab('showProtocol');
+                        $this->showProtocol();
+                        break;
+                    case "showProviders":
+                        $this->tabs->activateTab('showProviders');
+                        $this->showProviders();
+                        break;
 					default:
 						$cmd .= 'Cmd';
 						$this->$cmd();
@@ -92,13 +115,24 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 	 */
 	public function getTabs(): array
 	{
+        $i = 0;
 		return [
-			0 => [
+			$i++ => [
 				'id' => 'configure',
 				'txt' => $this->plugin->txt('configuration'),
 				'cmd' => 'configure',
 			],
-			1 => [
+            $i++ => [
+                'id' => 'showProtocol',
+                'txt' => $this->plugin->txt('queue_protocol'),
+                'cmd' => 'showProtocol',
+            ],
+            $i++ => [
+                'id' => 'showProviders',
+                'txt' => $this->plugin->txt('queue_providers'),
+                'cmd' => 'showProviders',
+            ],
+            $i++ => [
 				'id' => 'initialization',
 				'txt' => $this->plugin->txt('queue_initialization'),
 				'cmd' => 'initialization',
@@ -136,7 +170,9 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 		$form->setTitle($this->plugin->txt('queue_initialization'));
 
 		$task_info = json_decode($this->settings->get(QueueInitializationJobDefinition::JOB_TABLE, '{}'), true);
+
 		if(!$this->wasInitializationStarted($task_info)) {
+            // initialization was NOT started yet
 			$ne = new \ilNonEditableValueGUI('', 'start_initialization_by_click_first');
 			$ne->setValue($this->plugin->txt('start_initialization_by_click_first'));
 			$ne->setInfo(sprintf($this->plugin->txt('start_initialization_by_click_info'), $this->plugin->txt("start_initialization")));
@@ -145,6 +181,7 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 			$form->addCommandButton("startInitialization", $this->plugin->txt("start_initialization"));
 
 		} else if($this->canInitializationStart($task_info)) {
+            // initialization is NOT in state RUNNING, FINISHED or STARTED
 			$ne = new \ilNonEditableValueGUI('', 'start_initialization_by_click');
 			$ne->setValue($this->plugin->txt('start_initialization_by_click'));
 			$ne->setInfo(sprintf($this->plugin->txt('start_initialization_by_click_info'), $this->plugin->txt("start_initialization")));
@@ -152,19 +189,27 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 
 			$form->addCommandButton("startInitialization", $this->plugin->txt("start_initialization"));
 
-		}
-
-		if($this->hasInitializationFailed($task_info) || $this->hasInitializationFinished($task_info)) {
+		} else if($this->hasInitializationFailed($task_info) || $this->hasInitializationFinished($task_info)) {
+            // initialization has failed or is finished
 			$ne = new \ilNonEditableValueGUI('', 'show_initialization_status');
 			$ne->setValue($this->plugin->txt('show_initialization_status'));
 			$ne->setInfo(sprintf($this->plugin->txt('show_initialization_status_info'), $task_info['state']));
 			$form->addItem($ne);
 
-			global $DIC;
-			if ($DIC->user()->getId() == 6) {
-				$form->addCommandButton("resetQueue", $this->lng->txt("reset"));
-			}
-		}
+		} else if ($this->isInitializationRunning($task_info)) {
+            // initialization is currently running
+            $ne = new \ilNonEditableValueGUI('', 'show_initialization_running');
+            $ne->setValue($this->plugin->txt('show_initialization_running'));
+            $ne->setInfo(sprintf($this->plugin->txt('show_initialization_running_info'), $task_info['state']));
+            $form->addItem($ne);
+        }
+
+        if($this->hasInitializationFailed($task_info) || $this->hasInitializationFinished($task_info)) {
+            global $DIC;
+            if ($DIC->user()->getId() == 6) {
+                $form->addCommandButton("resetQueue", $this->lng->txt("reset"));
+            }
+        }
 
 		$form->setFormAction($this->ctrl->getFormAction($this));
 		$this->tpl->setContent($form->getHTML());
@@ -387,7 +432,17 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 
 		global $DIC;
 		$DIC->database()->manipulate('DELETE FROM ' . AbstractEvent::DB_TABLE . ' WHERE true;');
-		$this->settings->set(QueueInitializationJobDefinition::JOB_TABLE, '{}');
+        $task_info = [
+            'lock' => false,
+            'state' => 'not started',
+            'found_items' => 0,
+            'processed_items' => 0,
+            'progress' => 0,
+            'started_ts' => strtotime('now'),
+            'finished_ts' => null,
+            'last_item' => 0,
+        ];
+        $DIC->settings()->set('lerq_bgtask_init', json_encode($task_info));
 
 		$this->plugin->activate();
 
@@ -395,6 +450,58 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 		$this->ctrl->redirect($this, 'configure');
 		return;
 	}
+
+    private function getProtocolTable() : ProtocolTable
+    {
+        $table = new ProtocolTable(
+            $this,
+            $this->plugin,
+            $this->uiServices,
+            'showProtocol'
+        );
+
+        return $table;
+    }
+
+    private function applyProtocolFilter() : void
+    {
+        $table = $this->getProtocolTable();
+        $table->resetOffset();
+        $table->writeFilterToSession();
+
+        $this->showProtocol();
+    }
+
+    private function resetProtocolFilter() : void
+    {
+        $table = $this->getProtocolTable();
+        $table->resetOffset();
+        $table->resetFilter();
+
+        $this->showProtocol();
+    }
+
+    private function showProtocol() : void
+    {
+        $table = $this->getProtocolTable()
+            ->withProvider(new ProtocolTableProvider($GLOBALS['DIC']->database()))
+            ->populate();
+        
+        $this->tpl->setContent($table->getHtml());
+    }
+    
+    private function showProviders() : void
+    {
+        $table = (new ProviderTable($this,
+            $this->plugin,
+            $this->uiServices,
+            'showProviders')
+        )
+            ->withProvider(new ProviderTableProvider())
+            ->populate();
+
+        $this->tpl->setContent($table->getHtml());
+    }
 
 	/**
 	 * @param array $task_info
@@ -421,6 +528,18 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 				QueueInitializationJobDefinition::JOB_STATE_RUNNING,
 				QueueInitializationJobDefinition::JOB_STATE_STARTED
 			]));
+	}
+
+	/**
+	 * @param array $task_info
+	 * @return bool
+	 */
+	public function isInitializationRunning($task_info = []): bool
+	{
+		return (
+			!empty($task_info) &&
+            $task_info['state'] !== QueueInitializationJobDefinition::JOB_STATE_RUNNING
+        );
 	}
 
 	/**

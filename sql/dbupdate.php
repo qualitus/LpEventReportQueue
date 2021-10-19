@@ -227,7 +227,7 @@ if ($ilDB->tableExists('lerq_settings')) {
 		'ext_account',
 		'birthday',
 		'import_id',
-		'udf_fields'
+		'udf_fields',
     ];
 
     $select = 'SELECT keyword from lerq_settings';
@@ -249,5 +249,23 @@ if ($ilDB->tableExists('lerq_settings')) {
 			]);
 		}
 	}
+
+    $ilDB->insert('lerq_settings', [
+        'keyword' => ['text', 'obj_select'],
+        'value' => ['text', '*'],
+        'type' => ['text', 'text']
+    ]);
+}
+?>
+<#5>
+<?php
+if($ilDB->tableExists('lerq_queue')) {
+    if (!$ilDB->tableColumnExists('lerq_queue', 'progress_changed')) {
+        $ilDB->addTableColumn('lerq_queue', 'progress_changed', [
+            'type' => 'integer',
+            'length' => 4,
+            'notnull' => false,
+        ]);
+    }
 }
 ?>
