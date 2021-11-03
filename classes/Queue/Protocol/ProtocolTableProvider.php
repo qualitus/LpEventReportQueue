@@ -94,14 +94,14 @@ class ProtocolTableProvider extends DatabaseProvider
 
             if (null !== $filter['timestamp']['from']) {
                 $dateFilterParts[] = 'lerqq.timestamp >= ' . $this->db->quote(
-                    $filter['timestamp']['from'],
+                    $filter['timestamp']['from']->get(IL_CAL_UNIX),
                     ilDBConstants::T_INTEGER
                 );
             }
 
             if (null !== $filter['timestamp']['to']) {
                 $dateFilterParts[] = 'lerqq.timestamp <= ' . $this->db->quote(
-                    $filter['timestamp']['to'],
+                    $filter['timestamp']['to']->get(IL_CAL_UNIX),
                     ilDBConstants::T_INTEGER
                 );
             }
