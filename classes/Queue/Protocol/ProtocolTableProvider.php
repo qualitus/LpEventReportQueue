@@ -144,8 +144,8 @@ class ProtocolTableProvider extends DatabaseProvider
                 'object_title',
             ];
 
-            if (!in_array($order_field , $sortableColumns, true)) {
-                $order_field  = 'id';
+            if (!in_array($order_field, $sortableColumns, true)) {
+                $order_field = 'id';
             }
 
             if (!isset($params['order_direction'])) {

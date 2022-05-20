@@ -268,39 +268,43 @@ class ProtocolTable extends Base
             'Membership' => $row['mem_data'],
         ];
 
+
         $modal = $this->uiServices->factory()
             ->modal()
             ->lightbox([$this->uiServices->factory()->modal()->lightboxTextPage(
-                implode('',
-                    [
-                        $this->uiServices->renderer()->render(
-                            $this->uiServices->factory()->panel()->standard(
-                                'Common',
-                                $this->uiServices->factory()->listing()->unordered([
-                                    $this->plugin->txt('tbl_col_event_id') . ': ' . $row['id'],
-                                    $this->plugin->txt('tbl_col_event_timestamp') . ': ' . (new TimestampFormatter())->format((int) $row['timestamp']),
-                                    $this->plugin->txt('tbl_col_event_type') . ': ' . (new EventTypeFormatter('event', 'event_type'))->format($row),
-                                ])
-                            )
-                        )
-                    ] +
-                    array_map(
-                        function (string $value, string $header) : string {
-                            $content = (new JsonDocumentFormatter())->format($value);
-        
-                            return $this->uiServices->renderer()->render(
+                implode(
+                    '',
+                    array_merge(
+                        [
+                            $this->uiServices->renderer()->render(
                                 $this->uiServices->factory()->panel()->standard(
-                                    $header,
-                                    $this->uiServices->factory()->legacy($content)
+                                    'Common',
+                                    $this->uiServices->factory()->listing()->unordered([
+                                        $this->plugin->txt('tbl_col_event_id') . ': ' . $row['id'],
+                                        $this->plugin->txt('tbl_col_event_timestamp') . ': ' . (new TimestampFormatter())->format((int) $row['timestamp']),
+                                        $this->plugin->txt('tbl_col_event_type') . ': ' . (new EventTypeFormatter('event', 'event_type'))->format($row),
+                                    ])
                                 )
-                            );
-                        },
-                        array_filter($json_sections),
-                        array_keys(array_filter($json_sections))
+                            )
+                        ],
+                        array_map(
+                            function (string $value, string $header) : string {
+                                $content = (new JsonDocumentFormatter())->format($value);
+            
+                                return $this->uiServices->renderer()->render(
+                                    $this->uiServices->factory()->panel()->standard(
+                                        $header,
+                                        $this->uiServices->factory()->legacy($content)
+                                    )
+                                );
+                            },
+                            array_filter($json_sections),
+                            array_keys(array_filter($json_sections))
+                        )
                     )
                 ),
                 'JSON'
-        )]);
+            )]);
 
         $buttons[] = $this->uiServices->factory()
             ->button()
