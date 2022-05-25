@@ -195,6 +195,13 @@ class ProtocolTable extends Base
             'sortable' => true,
         ];
         $columns[++$i] = [
+            'field' => 'subject_email_addr',
+            'txt' => $this->plugin->txt('tbl_col_event_subject_email_addr'),
+            'default' => false,
+            'optional' => true,
+            'sortable' => true,
+        ];
+        $columns[++$i] = [
             'field' => 'object_id',
             'txt' => $this->plugin->txt('tbl_col_event_object_id'),
             'default' => false,
@@ -244,6 +251,9 @@ class ProtocolTable extends Base
         }
         if ('subject_title' === $column) {
             return (new JsonAttributeFormatter('username'))->format($row['user_data']);
+        }
+        if ('subject_email_addr' === $column) {
+            return (new JsonAttributeFormatter('email'))->format($row['user_data']);
         }
         if ('object_id' === $column) {
             return (new JsonAttributeFormatter('id'))->format($row['obj_data']);
@@ -340,6 +350,7 @@ class ProtocolTable extends Base
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_type'));
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_subject_id'));
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_subject_title'));
+        $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_subject_email_addr'));
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_object_id'));
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_object_ref_id'));
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_object_title'));
@@ -360,6 +371,7 @@ class ProtocolTable extends Base
         $a_excel->setCell($a_row, $col++, $a_set['event_type']);
         $a_excel->setCell($a_row, $col++, (new JsonAttributeFormatter('usr_id'))->format($a_set['user_data']));
         $a_excel->setCell($a_row, $col++, (new JsonAttributeFormatter('username'))->format($a_set['user_data']));
+        $a_excel->setCell($a_row, $col++, (new JsonAttributeFormatter('email'))->format($a_set['user_data']));
         $a_excel->setCell($a_row, $col++, (new JsonAttributeFormatter('id'))->format($a_set['obj_data']));
         $a_excel->setCell($a_row, $col++, (new JsonAttributeFormatter('ref_id'))->format($a_set['obj_data']));
         $a_excel->setCell($a_row, $col++, (new JsonAttributeFormatter('title'))->format($a_set['obj_data']));
@@ -376,6 +388,7 @@ class ProtocolTable extends Base
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_type'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_subject_id'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_subject_title'));
+        $a_csv->addColumn($this->plugin->txt('tbl_col_event_subject_email_addr'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_id'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_ref_id'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_title'));
@@ -398,6 +411,7 @@ class ProtocolTable extends Base
         $a_csv->addColumn($a_set['event_type']);
         $a_csv->addColumn((new JsonAttributeFormatter('usr_id'))->format($a_set['user_data']));
         $a_csv->addColumn((new JsonAttributeFormatter('username'))->format($a_set['user_data']));
+        $a_csv->addColumn((new JsonAttributeFormatter('email'))->format($a_set['user_data']));
         $a_csv->addColumn((new JsonAttributeFormatter('id'))->format($a_set['obj_data']));
         $a_csv->addColumn((new JsonAttributeFormatter('ref_id'))->format($a_set['obj_data']));
         $a_csv->addColumn((new JsonAttributeFormatter('title'))->format($a_set['obj_data']));

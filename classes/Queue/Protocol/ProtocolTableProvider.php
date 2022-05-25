@@ -139,6 +139,7 @@ class ProtocolTableProvider extends DatabaseProvider
                 'event_type',
                 'subject_id',
                 'subject_title',
+                'subject_email_addr',
                 'object_id',
                 'object_ref_id',
                 'object_title',
@@ -166,6 +167,9 @@ class ProtocolTableProvider extends DatabaseProvider
             }
             if ('subject_title' === $order_field) {
                 return "JSON_EXTRACT(user_data, '$.username') " . $order_direction;
+            }
+            if ('subject_email_addr' === $order_field) {
+                return "JSON_EXTRACT(user_data, '$.email') " . $order_direction;
             }
             if ('object_id' === $order_field) {
                 return "JSON_EXTRACT(obj_data, '$.id') " . $order_direction;
