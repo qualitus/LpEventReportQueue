@@ -54,6 +54,7 @@ tbl_col_event_type#:#Event Type
 tbl_col_event#:#Event
 tbl_col_event_subject_id#:#User ID
 tbl_col_event_subject_title#:#Username
+tbl_col_event_subject_email_addr#:#Email Address
 tbl_col_event_object_id#:#Object ID
 tbl_col_event_object_ref_id#:#Reference ID
 tbl_col_event_object_title#:#Object Title
