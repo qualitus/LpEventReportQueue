@@ -49,6 +49,13 @@ class FilterObject // @todo check filter rules
 	private $progress_changed;
 	/** @var int */
 	private $progress_changed_direction;
+    /** @var string */
+    private $excluded_progress;
+
+    public function __construct()
+    {
+        $this->excluded_progress = '';
+    }
 
 	/**
 	 * @return int
@@ -103,6 +110,18 @@ class FilterObject // @todo check filter rules
 		$this->course_end_direction = $before_after;
 		return $this;
 	}
+
+    public function getExcludedProgress() : string
+    {
+        return $this->excluded_progress;
+    }
+
+    public function setExcludedProgress(string $excluded_progress) : FilterObject
+    {
+        $this->excluded_progress = $excluded_progress;
+
+        return $this;
+    }
 
 	/**
 	 * @return string
