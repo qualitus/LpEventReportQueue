@@ -49,13 +49,13 @@ class FilterObject // @todo check filter rules
 	private $progress_changed;
 	/** @var int */
 	private $progress_changed_direction;
-    /** @var string */
-    private $excluded_progress;
+	/** @var string */
+	private $excluded_progress;
 
-    public function __construct()
-    {
-        $this->excluded_progress = '';
-    }
+	public function __construct()
+	{
+		$this->excluded_progress = '';
+	}
 
 	/**
 	 * @return int
