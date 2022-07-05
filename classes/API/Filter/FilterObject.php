@@ -111,17 +111,17 @@ class FilterObject // @todo check filter rules
 		return $this;
 	}
 
-    public function getExcludedProgress() : string
-    {
-        return $this->excluded_progress;
-    }
+	public function getExcludedProgress() : string
+	{
+		return $this->excluded_progress;
+	}
 
-    public function setExcludedProgress(string $excluded_progress) : FilterObject
-    {
-        $this->excluded_progress = $excluded_progress;
+	public function setExcludedProgress(string $excluded_progress) : FilterObject
+	{
+		$this->excluded_progress = $excluded_progress;
 
-        return $this;
-    }
+		return $this;
+	}
 
 	/**
 	 * @return string
