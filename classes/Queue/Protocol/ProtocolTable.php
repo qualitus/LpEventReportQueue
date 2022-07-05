@@ -223,6 +223,13 @@ class ProtocolTable extends Base
             'sortable' => true,
         ];
         $columns[++$i] = [
+            'field' => 'progress',
+            'txt' => $this->plugin->txt('tbl_col_event_progress'),
+            'default' => true,
+            'optional' => true,
+            'sortable' => true,
+        ];
+        $columns[++$i] = [
             'field' => 'actions',
             'txt' => $this->lng->txt('actions'),
             'default' => true,
@@ -263,6 +270,9 @@ class ProtocolTable extends Base
         }
         if ('object_title' === $column) {
             return (new JsonAttributeFormatter('title'))->format($row['obj_data']);
+        }
+        if ('progress' === $column) {
+            return $this->progress($row);
         }
 
         return parent::formatCellValue($column, $row);
@@ -354,6 +364,7 @@ class ProtocolTable extends Base
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_object_id'));
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_object_ref_id'));
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_object_title'));
+        $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_progress'));
         $a_excel->setCell($a_row, $col++, 'user_data');
         $a_excel->setCell($a_row, $col++, 'obj_data');
         $a_excel->setCell($a_row, $col++, 'mem_data');
@@ -375,6 +386,7 @@ class ProtocolTable extends Base
         $a_excel->setCell($a_row, $col++, (new JsonAttributeFormatter('id'))->format($a_set['obj_data']));
         $a_excel->setCell($a_row, $col++, (new JsonAttributeFormatter('ref_id'))->format($a_set['obj_data']));
         $a_excel->setCell($a_row, $col++, (new JsonAttributeFormatter('title'))->format($a_set['obj_data']));
+        $a_excel->setCell($a_row, $col++, $this->progress($a_set));
         $a_excel->setCell($a_row, $col++, $a_set['user_data']);
         $a_excel->setCell($a_row, $col++, $a_set['obj_data']);
         $a_excel->setCell($a_row, $col++, $a_set['mem_data']);
@@ -392,6 +404,7 @@ class ProtocolTable extends Base
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_id'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_ref_id'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_object_title'));
+        $a_csv->addColumn($this->plugin->txt('tbl_col_event_progress'));
         $a_csv->addColumn('user_data');
         $a_csv->addColumn('obj_data');
         $a_csv->addColumn('mem_data');
@@ -415,10 +428,17 @@ class ProtocolTable extends Base
         $a_csv->addColumn((new JsonAttributeFormatter('id'))->format($a_set['obj_data']));
         $a_csv->addColumn((new JsonAttributeFormatter('ref_id'))->format($a_set['obj_data']));
         $a_csv->addColumn((new JsonAttributeFormatter('title'))->format($a_set['obj_data']));
+        $a_csv->addColumn($this->progress($a_set));
         $a_csv->addColumn($a_set['user_data']);
         $a_csv->addColumn($a_set['obj_data']);
         $a_csv->addColumn($a_set['mem_data']);
 
         $a_csv->addRow();
+    }
+
+    private function progress(array $row) : string
+    {
+        $this->lng->loadLanguageModule('trac');
+        return ($row['progress'] ?? false) ? $this->lng->txt('trac_' . $row['progress']) : '';
     }
 }

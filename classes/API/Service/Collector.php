@@ -129,6 +129,11 @@ class Collector
         }
 
 		/* Event related filter */
+		if ($this->filter->getExcludedProgress()) {
+			$where .= '' . $db->quoteIdentifier('progress') . ' <> ' .
+				$db->quote($this->filter->getExcludedProgress(), 'text') . ' ';
+			$where .= ' AND ';
+		}
 		if ($this->filter->getProgress() !== '*') {
 			$where .= '' . $db->quoteIdentifier('progress') . ' = ' .
 				$db->quote($this->filter->getProgress(), 'text') . ' ';
