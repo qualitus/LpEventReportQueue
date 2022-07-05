@@ -272,7 +272,7 @@ class ProtocolTable extends Base
             return (new JsonAttributeFormatter('title'))->format($row['obj_data']);
         }
         if ('progress' === $column) {
-            $this->progress($row);
+            return $this->progress($row);
         }
 
         return parent::formatCellValue($column, $row);
