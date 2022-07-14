@@ -143,6 +143,7 @@ class ProtocolTableProvider extends DatabaseProvider
                 'object_id',
                 'object_ref_id',
                 'object_title',
+                'progress',
             ];
 
             if (!in_array($order_field, $sortableColumns, true)) {
@@ -179,6 +180,9 @@ class ProtocolTableProvider extends DatabaseProvider
             }
             if ('object_title' === $order_field) {
                 return "JSON_EXTRACT(obj_data, '$.title') " . $order_direction;
+            }
+            if ('progress' === $order_field) {
+                return 'progress ' . $order_direction;
             }
 
             return $order_field . ' ' . $order_direction;
