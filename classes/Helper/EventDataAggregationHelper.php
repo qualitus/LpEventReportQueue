@@ -104,7 +104,6 @@ class EventDataAggregationHelper
 
         $this->logger->debug('no lp_status found');
         return 0;
-
     }
 
     /**
@@ -133,7 +132,7 @@ class EventDataAggregationHelper
         $result = $DIC->database()->query($query_status);
         $lp_status = $DIC->database()->fetchAll($result);
 
-        if (is_array($lp_status) && $lp_status !== [] && array_key_exists('status', $lp_status[0])) {
+        if ($lp_status !== [] && array_key_exists('status', $lp_status[0])) {
             $this->logger->debug('lp_status data found');
             return $lp_status[0];
         }
@@ -164,7 +163,7 @@ class EventDataAggregationHelper
         $result = $DIC->database()->query($query_status);
         $lp_status = $DIC->database()->fetchAll($result);
 
-        if (is_array($lp_status) && $lp_status !== [] && array_key_exists('status_changed', $lp_status[0])) {
+        if ($lp_status !== [] && array_key_exists('status_changed', $lp_status[0])) {
             $lp_status_changed = (string) $lp_status[0]['status_changed'];
             $this->logger->debug(sprintf(
                 'lp_status_changed %s found for (usr, obj) %s, %s (DEBUG: timestamp) %s',
@@ -250,7 +249,7 @@ class EventDataAggregationHelper
         $result = $DIC->database()->query($select_assignments);
         $assignments = $DIC->database()->fetchAll($result);
 
-        if (is_array($assignments) && $assignments !== [] && array_key_exists('rol_id', $assignments[0])) {
+        if ($assignments !== [] && array_key_exists('rol_id', $assignments[0])) {
             $this->logger->debug(sprintf('role_id %s found', $assignments[0]['rol_id']));
             return (int) $assignments[0]['rol_id'];
         }

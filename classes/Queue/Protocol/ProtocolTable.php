@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /**
  * This file is part of ILIAS, a powerful learning management system
@@ -14,15 +14,18 @@
  * https://www.ilias.de
  * https://github.com/ILIAS-eLearning
  *
- ********************************************************************
- */
+ *********************************************************************/
+
+declare(strict_types=1);
 
 namespace QU\LERQ\Queue\Protocol;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use ilCSVWriter;
 use ilDateTime;
 use ilExcel;
+use ilTableFilterItem;
 use QU\LERQ\Queue\Protocol\Table\Formatter\EventTypeFormatter;
 use ILIAS\DI\UIServices;
 use ILIAS\UI\Component\Component;
@@ -34,16 +37,17 @@ use ilLpEventReportQueueConfigGUI;
 use ilLpEventReportQueuePlugin;
 use QU\LERQ\UI\Table\Formatter\TimestampFormatter;
 
+/**
+ * @extends Base<array{"id": numeric-string, "event-type": string, "progress": null|string, "assignment": null|string, "user_data": string, "obj_data": string, "mem_data": string, "timestamp": numeric-string, "course_start": null|numeric-string, "course_end": null|numeric-string, "progress_changed": null|numeric-string}>
+ */
 class ProtocolTable extends Base
 {
     /** @var array<int, array> */
-    private $cachedColumnDefinition = [];
-    /** @var ilLpEventReportQueuePlugin */
-    private $plugin;
-    /** @var UIServices */
-    private $uiServices;
-    /** @var Component[] */
-    private $uiComponents = [];
+    private array $cachedColumnDefinition = [];
+    private ilLpEventReportQueuePlugin $plugin;
+    private UIServices $uiServices;
+    /** @var list<Component> */
+    private array $uiComponents = [];
 
     public function __construct(
         ilLpEventReportQueueConfigGUI $ctrlInstance,
@@ -79,8 +83,12 @@ class ProtocolTable extends Base
         $this->setExportFormats([self::EXPORT_CSV, self::EXPORT_EXCEL]);
     }
 
-    public function addFilterItemByMetaType($id, $type = self::FILTER_TEXT, $a_optional = false, $caption = null)
-    {
+    public function addFilterItemByMetaType(
+        string $id,
+        int $type = self::FILTER_TEXT,
+        bool $a_optional = false,
+        string $caption = ""
+    ): ?ilTableFilterItem {
         $item = parent::addFilterItemByMetaType($id, $type, $a_optional, $caption);
 
         $this->filter[$id] = $item->getValue();
@@ -88,7 +96,7 @@ class ProtocolTable extends Base
         return $item;
     }
 
-    public function initFilter() : void
+    public function initFilter(): void
     {
         $event_id = $this->addFilterItemByMetaType(
             'id',
@@ -148,7 +156,7 @@ class ProtocolTable extends Base
         );
     }
 
-    protected function getColumnDefinition() : array
+    protected function getColumnDefinition(): array
     {
         if ($this->cachedColumnDefinition !== []) {
             return $this->cachedColumnDefinition;
@@ -242,7 +250,7 @@ class ProtocolTable extends Base
         return $this->cachedColumnDefinition;
     }
 
-    protected function formatCellValue(string $column, array $row) : string
+    protected function formatCellValue(string $column, array $row): string
     {
         if ('actions' === $column) {
             return $this->formatActionDropdown($column, $row);
@@ -278,7 +286,7 @@ class ProtocolTable extends Base
         return parent::formatCellValue($column, $row);
     }
 
-    protected function formatActionDropdown(string $column, array $row) : string
+    protected function formatActionDropdown(string $column, array $row): string
     {
         $buttons = [];
 
@@ -308,9 +316,9 @@ class ProtocolTable extends Base
                             )
                         ],
                         array_map(
-                            function (string $value, string $header) : string {
+                            function (string $value, string $header): string {
                                 $content = (new JsonDocumentFormatter())->format($value);
-            
+
                                 return $this->uiServices->renderer()->render(
                                     $this->uiServices->factory()->panel()->standard(
                                         $header,
@@ -346,12 +354,12 @@ class ProtocolTable extends Base
         return $this->uiServices->renderer()->render([$actions, $modal]);
     }
 
-    public function getHTML() : string
+    public function getHTML(): string
     {
         return parent::getHTML() . $this->uiServices->renderer()->render($this->uiComponents);
     }
 
-    protected function fillHeaderExcel(ilExcel $a_excel, &$a_row)
+    protected function fillHeaderExcel(ilExcel $a_excel, int &$a_row): void
     {
         $col = 0;
         $a_excel->setCell($a_row, $col++, $this->plugin->txt('tbl_col_event_id'));
@@ -370,7 +378,7 @@ class ProtocolTable extends Base
         $a_excel->setCell($a_row, $col++, 'mem_data');
     }
 
-    protected function fillRowExcel(ilExcel $a_excel, &$a_row, $a_set)
+    protected function fillRowExcel(ilExcel $a_excel, int &$a_row, array $a_set): void
     {
         $col = 0;
         $a_excel->setCell($a_row, $col++, $a_set['id']);
@@ -392,7 +400,7 @@ class ProtocolTable extends Base
         $a_excel->setCell($a_row, $col++, $a_set['mem_data']);
     }
 
-    protected function fillHeaderCSV($a_csv)
+    protected function fillHeaderCSV(ilCSVWriter $a_csv): void
     {
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_id'));
         $a_csv->addColumn($this->plugin->txt('tbl_col_event_timestamp'));
@@ -412,7 +420,7 @@ class ProtocolTable extends Base
         $a_csv->addRow();
     }
 
-    protected function fillRowCSV($a_csv, $a_set)
+    protected function fillRowCSV(ilCSVWriter $a_csv, array $a_set): void
     {
         $a_csv->addColumn($a_set['id']);
         $a_csv->addColumn(
@@ -436,7 +444,7 @@ class ProtocolTable extends Base
         $a_csv->addRow();
     }
 
-    private function progress(array $row) : string
+    private function progress(array $row): string
     {
         $this->lng->loadLanguageModule('trac');
         return ($row['progress'] ?? false) ? $this->lng->txt('trac_' . $row['progress']) : '';

@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /**
  * This file is part of ILIAS, a powerful learning management system
@@ -14,8 +14,9 @@
  * https://www.ilias.de
  * https://github.com/ILIAS-eLearning
  *
- ********************************************************************
- */
+ *********************************************************************/
+
+declare(strict_types=1);
 
 namespace QU\LERQ\Queue\Protocol;
 
@@ -23,9 +24,12 @@ use ilDBConstants;
 use InvalidArgumentException;
 use QU\LERQ\UI\Table\Data\DatabaseProvider;
 
+/**
+ * @extends DatabaseProvider<array{"id": numeric-string, "event-type": string, "progress": null|string, "assignment": null|string, "user_data": string, "obj_data": string, "mem_data": string, "timestamp": numeric-string, "course_start": null|numeric-string, "course_end": null|numeric-string, "progress_changed": null|numeric-string}>
+ */
 class ProtocolTableProvider extends DatabaseProvider
 {
-    protected function getSelectPart(array $params, array $filter) : string
+    protected function getSelectPart(array $params, array $filter): string
     {
         $fields = [
             'lerqq.*',
@@ -34,14 +38,14 @@ class ProtocolTableProvider extends DatabaseProvider
         return implode(', ', $fields);
     }
 
-    protected function getFromPart(array $params, array $filter) : string
+    protected function getFromPart(array $params, array $filter): string
     {
         $joins = [];
 
         return 'lerq_queue lerqq ' . implode(' ', $joins);
     }
 
-    protected function getWherePart(array $params, array $filter) : string
+    protected function getWherePart(array $params, array $filter): string
     {
         $whereConjunctions = [];
 
@@ -92,14 +96,14 @@ class ProtocolTableProvider extends DatabaseProvider
         if (isset($filter['timestamp']) && is_array($filter['timestamp'])) {
             $dateFilterParts = [];
 
-            if (null !== $filter['timestamp']['from']) {
+            if (isset($filter['timestamp']['from'])) {
                 $dateFilterParts[] = 'lerqq.timestamp >= ' . $this->db->quote(
                     $filter['timestamp']['from']->get(IL_CAL_UNIX),
                     ilDBConstants::T_INTEGER
                 );
             }
 
-            if (null !== $filter['timestamp']['to']) {
+            if (isset($filter['timestamp']['to'])) {
                 $dateFilterParts[] = 'lerqq.timestamp <= ' . $this->db->quote(
                     $filter['timestamp']['to']->get(IL_CAL_UNIX),
                     ilDBConstants::T_INTEGER
@@ -114,17 +118,17 @@ class ProtocolTableProvider extends DatabaseProvider
         return implode(' AND ', $whereConjunctions);
     }
 
-    protected function getGroupByPart(array $params, array $filter) : string
+    protected function getGroupByPart(array $params, array $filter): string
     {
         return '';
     }
 
-    protected function getHavingPart(array $params, array $filter) : string
+    protected function getHavingPart(array $params, array $filter): string
     {
         return '';
     }
 
-    protected function getOrderByPart(array $params, array $filter) : string
+    protected function getOrderByPart(array $params, array $filter): string
     {
         if (isset($params['order_field'])) {
             if (!is_string($params['order_field'])) {
@@ -155,7 +159,7 @@ class ProtocolTableProvider extends DatabaseProvider
             } else {
                 $order_direction = strtoupper($params['order_direction']);
             }
-            
+
             if (!in_array(strtolower($order_direction), ['asc', 'desc'], true)) {
                 throw new InvalidArgumentException('Please provide a valid order direction.');
             }
