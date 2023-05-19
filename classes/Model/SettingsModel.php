@@ -106,13 +106,10 @@ class SettingsModel
         }
     }
 
-    /**
-     * @return string|false
-     */
-    public function save($keyword = false): bool
+    public function save($keyword = false): void
     {
         if ($this->items === []) {
-            return false;
+            return;
         }
 
         $ret = true;
@@ -135,7 +132,8 @@ class SettingsModel
                 'boolean'
             ];
 
-            return $this->_create($fields, $types, $values);
+            $this->_create($fields, $types, $values);
+            return;
         }
 
         foreach ($this->items as $key => $item) {
@@ -145,12 +143,8 @@ class SettingsModel
                 'boolean',
             ];
 
-            if (!$this->_update($fields, $types, $values, $key)) {
-                $ret = false;
-            }
+            $this->_update($fields, $types, $values, $key);
         }
-
-        return $ret;
     }
 
     public function remove(string $keyword): bool
@@ -194,7 +188,7 @@ class SettingsModel
             $values
         );
 
-        return $affected_rows === 0;
+        return $affected_rows > 0;
     }
 
     /**
@@ -215,7 +209,7 @@ class SettingsModel
             $values
         );
 
-        return $affected_rows === 0;
+        return $affected_rows > 0;
     }
 
     private function _delete(string $whereIndex): bool
@@ -225,6 +219,6 @@ class SettingsModel
 
         $affected_rows = $this->database->manipulate($query);
 
-        return $affected_rows === 0;
+        return $affected_rows > 0;
     }
 }
