@@ -70,8 +70,8 @@ abstract class AbstractEvent implements EventInterface
                 ->setEvent($data['event'])
                 ->setEventType($this->mapEventToType($data['event']))
                 ->setProgress($data['progress'])
-                ->setProgressChanged($data['progress_changed'])
-                ->setAssignment($data['assignment']);
+                ->setProgressChanged($data['progress_changed'] ?? null)
+                ->setAssignment($data['assignment'] ?? null);
 
             if (array_key_exists('lpperiod', $data) && !empty($data['lpperiod'])) {
                 /** @var ilDateTime[] $lpp */
