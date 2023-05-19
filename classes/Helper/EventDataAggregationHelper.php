@@ -288,7 +288,7 @@ class EventDataAggregationHelper
                     global $DIC;
                     $tree = $DIC->repositoryTree();
 
-                    $paths = $tree->getPathFull($ref_id);
+                    $paths = $tree->getPathFull($ref_id, ROOT_FOLDER_ID);
                     $this->logger->debug(sprintf('searching in path %s', implode(',', $paths)));
                     if ($paths !== []) {
                         foreach (array_reverse($paths) as $path) {

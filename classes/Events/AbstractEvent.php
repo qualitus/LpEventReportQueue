@@ -170,7 +170,7 @@ abstract class AbstractEvent implements EventInterface
                     if ($settings->getItem('import_id')->getValue()) {
                         $user->setImportId($ud['import_id']);
                     }
-                    if (array_key_exists('udfdata', $data) && !empty($data['udfdata'])) {
+                    if (array_key_exists('udfdata', $data) && $data['udfdata'] !== []) {
                         if ($settings->getItem('udf_fields')->getValue()) {
                             $user->setUdfData($data['udfdata']);
                         }
@@ -208,7 +208,6 @@ abstract class AbstractEvent implements EventInterface
 
             $this->_saveEventData($queue);
             return true;
-
         } catch (Exception $e) {
             // @Todo Exception
             return false;

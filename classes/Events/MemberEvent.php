@@ -53,11 +53,11 @@ class MemberEvent extends AbstractEvent
             $data['progress_changed'] = $lp_data['status_changed'];
         }
         $data['assignment'] = '-';
-        if ($data['memberdata']['role'] !== null) {
+        if (($data['memberdata']['role'] ?? null) !== null) {
             $data['assignment'] = $eventDataAggregator->getRoleTitleByRoleId((int) $data['memberdata']['role']);
         } else {
             $ref_id = ($event->getRefId() > 0 ? $event->getRefId() : (
-                $data['memberdata']['course_ref_id'] > 0 ? (int) $data['memberdata']['course_ref_id'] : 0
+                ($data['memberdata']['course_ref_id'] ?? 0) > 0 ? (int) $data['memberdata']['course_ref_id'] : 0
             ));
             if ($ref_id > 0) {
                 $assignment = $eventDataAggregator->getParentContainerAssignmentRoleForObjectByRefIdAndUserId(

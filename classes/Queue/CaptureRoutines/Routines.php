@@ -26,6 +26,7 @@ use ilObjectFactory;
 use ilObjUser;
 use ilUserDefinedData;
 use ilUserDefinedFields;
+use ilUtil;
 use QU\LERQ\API\DataCaptureRoutinesInterface;
 use QU\LERQ\Model\EventModel;
 
@@ -253,10 +254,10 @@ class Routines implements DataCaptureRoutinesInterface
             if ($course_id === -1) {
                 $set = $this->findFirstParentCourseByObjId($event->getObjId(), $ilObj->getType() === 'crs');
                 if ($set['ref_id'] !== 0) {
-                    $ilObj->setRefId((int) $set['ref_id']);
+                    $ilObj->setRefId($set['ref_id']);
 
                     if ($set['course_ref_id'] !== 0) {
-                        $course_id = (int) $set['course_ref_id'];
+                        $course_id = $set['course_ref_id'];
                     }
                 }
             }
@@ -265,11 +266,10 @@ class Routines implements DataCaptureRoutinesInterface
                 $ambiguous = '&ambiguous=true';
             }
 
-
             $crs_title = null;
             $crs_id = null;
             $crs_ref_id = null;
-            if ($course_id !== false) {
+            if ($course_id > 0) {
                 $course = new ilObjCourse($course_id, true);
                 $crs_title = $course->getTitle();
                 $crs_id = $course->getId();
@@ -278,6 +278,9 @@ class Routines implements DataCaptureRoutinesInterface
 
             $link = '';
             if ($ilObj->getRefId() !== null && $ilObj->getType() !== null) {
+                if (!defined('ILIAS_HTTP_PATH')) {
+                    define('ILIAS_HTTP_PATH', ilUtil::_getHttpPath());
+                }
                 $link = ilLink::_getStaticLink($ilObj->getRefId(), $ilObj->getType());
             }
 
@@ -305,7 +308,7 @@ class Routines implements DataCaptureRoutinesInterface
     {
         global $DIC;
 
-        if ($ref_id !== null) {
+        if ($ref_id !== null && $ref_id > 0) {
             $tree = $DIC->repositoryTree();
             $parent = 0;
             // check if parent object is type course
@@ -313,7 +316,7 @@ class Routines implements DataCaptureRoutinesInterface
 
             if ($parent_type === 0) {
                 // walk tree and check if parent object of any node is type course
-                $paths = $tree->getPathFull($ref_id);
+                $paths = $tree->getPathFull($ref_id, ROOT_FOLDER_ID);
                 if ($paths !== []) {
                     foreach (array_reverse($paths) as $path) {
                         $parent_type = $tree->checkForParentType((int) $path['child'], 'crs');
