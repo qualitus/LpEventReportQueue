@@ -1,13 +1,14 @@
 # LpEventReportQueue Plugin
 
-![Min ILIAS Version](https://img.shields.io/badge/Min_ILIAS-5.4.x-orange)
-![Recommended ILIAS Version](https://img.shields.io/badge/Recommended_ILIAS-7.x-yellowgreen)
-![Max ILIAS Version](https://img.shields.io/badge/Max_ILIAS-7.x-orange)
+![Min ILIAS Version](https://img.shields.io/badge/Min_ILIAS-8.x-orange)
+![Recommended ILIAS Version](https://img.shields.io/badge/Recommended_ILIAS-8.x-yellowgreen)
+![Max ILIAS Version](https://img.shields.io/badge/Max_ILIAS-8.x-orange)
 
-![PHP Version](https://img.shields.io/badge/PHP-%3E%3D7.2-blue)
+![PHP Version](https://img.shields.io/badge/PHP-%3E%3D7.4-blue)
+![PHP Version](https://img.shields.io/badge/PHP-%3C%3D8.0-blue)
 ![Plugin Slot](https://img.shields.io/badge/Slot-CronHook-blue)
 
-![Plugin Version](https://img.shields.io/badge/plugin_version-6.0.0-blue)
+![Plugin Version](https://img.shields.io/badge/plugin_version-8.0.0-blue)
 
 The LpEventReportQueue plugin tracks certain events and historizes them in a database queue. Entries in the queue can later be accessed via API by other Plugins (see below).
 Those Plugins are called _Provider_-Plugins, because they can transfer (=provide) the events to another system.
@@ -37,6 +38,7 @@ Tracked events:
 **Table of Contents**
 
 * [Installation](#installation)
+  * [Composer](#composer)
 * [Configuration](#configuration)
 * [Initialization](#initialization)
 * [Usage](#usage)
@@ -53,6 +55,16 @@ Tracked events:
   1. Actions/Update
   2. Actions/Refresh Languages
   3. Actions/Activate
+
+#### Composer
+
+After the plugin files have been installed as described above,
+please install the [`composer`](https://getcomposer.org/) dependencies:
+
+```bash
+cd Customizing/global/plugins/Services/Cron/CronHook/LpEventReportQueue
+composer install --no-dev
+```
 
 ## Configuration
 
