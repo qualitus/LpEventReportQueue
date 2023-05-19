@@ -12,7 +12,9 @@
     "classmap": [
       "./classes"
     ],
-    "exclude-from-classmap": []
+    "exclude-from-classmap": [
+      "LCAutoloader.php"
+    ]
   },
   "config": {
     "optimize-autoloader": true,

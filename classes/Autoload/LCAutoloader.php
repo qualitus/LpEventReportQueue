@@ -16,6 +16,10 @@
  *
  *********************************************************************/
 
+if (class_exists('LCAutoloader')) {
+    return;
+}
+
 class LCAutoloader
 {
     /** @var array<string, list<string>> */
