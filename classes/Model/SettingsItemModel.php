@@ -1,61 +1,59 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\Model;
 
-/**
- * Class SettingsItemModel
- * @package QU\LERQ\Model
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
 class SettingsItemModel
 {
-	/** @var string */
-	protected $keyword = '';
+    private string $keyword;
+    /** @var mixed|null */
+    private $value;
 
-	/** @var string */
-	protected $type;
+    /**
+     * @param mixed|null $value
+     */
+    public function __construct(string $keyword, $value = null)
+    {
+        $this->keyword = $keyword;
+        if (isset($value)) {
+            $this->setValue($value);
+        }
+    }
 
-	/** @var mixed */
-	protected $value = null;
+    public function getKeyword(): string
+    {
+        return $this->keyword;
+    }
 
-	/**
-	 * SettingsItemModel constructor.
-	 * @param string $keyword
-	 * @param null $value
-	 */
-	public function __construct(string $keyword, $value = null)
-	{
-		$this->keyword = $keyword;
-		if (isset($value)) {
-			$this->setValue($value);
-		}
-	}
+    /**
+     * @return mixed|null
+     */
+    public function getValue()
+    {
+        return $this->value;
+    }
 
-	/**
-	 * @return mixed
-	 */
-	public function getKeyword()
-	{
-		return $this->keyword;
-	}
-
-	/**
-	 * @return mixed
-	 */
-	public function getValue()
-	{
-		return $this->value;
-	}
-
-	/**
-	 * @param mixed $value
-	 * @return SettingsItemModel
-	 */
-	public function setValue($value)
-	{
-		$this->value = $value;
-		return $this;
-	}
-
+    /**
+     * @param mixed|null $value
+     */
+    public function setValue($value): SettingsItemModel
+    {
+        $this->value = $value;
+        return $this;
+    }
 }

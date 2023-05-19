@@ -1,273 +1,230 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\Model;
 
-/**
- * Class SettingsModel
- * @package QU\LERQ\Model
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
+use ilDBConstants;
+use ilDBInterface;
+
 class SettingsModel
 {
-	/** @var string */
-	private $use_table = 'lerq_settings';
+    private string $use_table = 'lerq_settings';
+    private string $use_index = 'keyword';
+    private ilDBInterface $database;
+    /** @var array<string, SettingsItemModel> */
+    private array $items = [];
 
-	/** @var string */
-	private $use_index = 'keyword';
+    public function __construct()
+    {
+        global $DIC;
 
-	/** @var \ilDBInterface  */
-	private $database;
+        $this->database = $DIC->database();
+        $this->load();
+    }
 
-	/** @var SettingsItemModel[] */
-	private $items;
+    /**
+     * @param mixed|null $value
+     */
+    public function addItem(string $keyword, $value = null): self
+    {
+        if (!array_key_exists($keyword, $this->items)) {
+            $this->items[$keyword] = new SettingsItemModel($keyword, $value);
+            $this->save($keyword);
+        }
 
-	/**
-	 * @param string $keyword
-	 * @param mixed|null $value
-	 * @return SettingsModel
-	 */
-	public function addItem(string $keyword, $value = null): SettingsModel
-	{
-		if (!array_key_exists($keyword, $this->items)) {
-			$this->items[$keyword] = new SettingsItemModel($keyword, $value);
-			$this->save($keyword);
-		}
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * @param $keyword
-	 * @return bool|SettingsItemModel
-	 */
-	public function getItem($keyword)
-	{
-		if (array_key_exists($keyword, $this->items)) {
-			return $this->items[$keyword];
-		}
-		return new SettingsItemModel($keyword);
-	}
+    public function getItem(string $keyword): SettingsItemModel
+    {
+        if (array_key_exists($keyword, $this->items)) {
+            return $this->items[$keyword];
+        }
 
-	/**
-	 * @return array
-	 */
-	public function getAll(): array
-	{
-		return $this->items;
-	}
+        return new SettingsItemModel($keyword);
+    }
 
-	/**
-	 * @param $keyword
-	 * @param $value
-	 * @return SettingsModel
-	 */
-	public function __set($keyword, $value): SettingsModel
-	{
-		if (array_key_exists($keyword, $this->items)) {
-			$this->items[$keyword]->setValue($value);
-		}
-		return $this;
-	}
+    /**
+     * @return array<string, SettingsItemModel>
+     */
+    public function getAll(): array
+    {
+        return $this->items;
+    }
 
-	/**
-	 * @param $keyword
-	 * @return mixed|null
-	 */
-	public function __get($keyword)
-	{
-		if (array_key_exists($keyword, $this->items)) {
-			return $this->items[$keyword]->getValue();
-		}
-		return null;
-	}
+    /**
+     * @param mixed|null $value
+     */
+    public function __set(string $keyword, $value): void
+    {
+        if (array_key_exists($keyword, $this->items)) {
+            $this->items[$keyword]->setValue($value);
+        }
+    }
 
-	/**
-	 * @param string|null $keyword
-	 * @return bool
-	 */
-	public function load(string $keyword = null): bool
-	{
-		if ($keyword !== null) {
-			$data = $this->_loadBy($keyword);
-		} else {
-			$data = $this->_load();
-		}
-		if (!empty($data)) {
-			foreach ($data as $rec) {
-				$item = new SettingsItemModel($rec['keyword'], $rec['value']);
-				$this->items[$rec['keyword']] = $item;
-				unset($item);
-			}
-			return true;
-		}
-		return false;
-	}
+    public function __isset(string $keyword): bool
+    {
+        return isset($this->items[$keyword]) || array_key_exists($keyword, $this->items);
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function save($keyword = false): bool
-	{
-		if (empty($this->items)) {
-			return false;
-		}
-		$ret = true;
-		$fields = [
-			'keyword',
-			'value',
-			'type'
-		];
-		$types = [
-			'text',
-			'text',
-			'text'
-		];
-		if ($keyword) {
-			$values = [
-				$this->items[$keyword]->getKeyword(),
-				$this->items[$keyword]->getValue(),
-				'boolean'
-			];
-			return $this->_create($fields, $types, $values);
-		}
-		foreach ($this->items as $keyword => $item) {
-			$values = [
-				$item->getKeyword(),
-				$item->getValue(),
-				'boolean',
-			];
-			if (!$this->_update($fields, $types, $values, $keyword)) {
-				$ret = false;
-			}
-		}
-		return $ret;
-	}
+    /**
+     * @return mixed|null
+     */
+    public function __get(string $keyword)
+    {
+        if (array_key_exists($keyword, $this->items)) {
+            return $this->items[$keyword]->getValue();
+        }
 
-	/**
-	 * @param string $keyword
-	 * @return bool
-	 */
-	public function remove(string $keyword): bool
-	{
-		if (array_key_exists($keyword, $this->items)) {
-			return $this->_delete($keyword);
-		}
-		return false;
-	}
+        return null;
+    }
 
-	/**
-	 * SettingsModel constructor.
-	 */
-	public function __construct()
-	{
-		global $DIC;
-		$this->database = $DIC->database();
-		$this->items = [];
-		$this->load();
-	}
+    private function load(): void
+    {
+        $data = $this->_load();
 
-	/**
-	 * Load all entries from database
-	 *
-	 * This is not recommended. You should use _loadById() instead.
-	 *
-	 * @return array			Array with database values like
-	 * 							[ field_name => field_value ]
-	 */
-	final private function _load(): array
-	{
-		$select = 'SELECT * FROM `' . $this->use_table . '`;';
+        if (!empty($data)) {
+            foreach ($data as $rec) {
+                $item = new SettingsItemModel($rec['keyword'], $rec['value']);
+                $this->items[$rec['keyword']] = $item;
+            }
+        }
+    }
 
-		$result = $this->database->query($select);
+    /**
+     * @return string|false
+     */
+    public function save($keyword = false): bool
+    {
+        if ($this->items === []) {
+            return false;
+        }
 
-		$res = $this->database->fetchAll($result);
-		return $res;
-	}
+        $ret = true;
 
-	/**
-	 * Load a specific entry be its ID
-	 *
-	 * This is the recommended function to load the data
-	 * into your object. Just use this function inside
-	 * your objects __construct() and assign the returned
-	 * data to your objects parameters.
-	 *
-	 * @param int $id			Entry ID from $use_index field
-	 * @return array			Array with database values like
-	 * 							[ field_name => field_value ]
-	 */
-	final private function _loadBy(string $keyword): array
-	{
-		$select = 'SELECT * FROM `' . $this->use_table . '` WHERE ' . $this->use_index . ' = ' .
-			$this->database->quote($keyword, 'text');
+        $fields = [
+            'keyword',
+            'value',
+            'type'
+        ];
+        $types = [
+            ilDBConstants::T_TEXT,
+            ilDBConstants::T_TEXT,
+            ilDBConstants::T_TEXT
+        ];
 
-		$result = $this->database->query($select);
+        if ($keyword) {
+            $values = [
+                $this->items[$keyword]->getKeyword(),
+                $this->items[$keyword]->getValue(),
+                'boolean'
+            ];
 
-		$res = $this->database->fetchAll($result);
-		return $res[0];
-	}
+            return $this->_create($fields, $types, $values);
+        }
 
-	/**
-	 * Create a new entry in database
-	 *
-	 * @param array $fields		Array of fields
-	 * @param array $types		Array of field types
-	 * @param array $values		Array of values to save
-	 * @return bool
-	 */
-	final private function _create(array $fields, array $types, array $values)
-	{
-		$query = 'INSERT INTO `' . $this->use_table . '` ';
-		$query .= '(' . implode(', ', $fields) . ') ';
-		$query .= 'VALUES (' . implode(',', array_fill(0, count($fields), '%s')) . ') ';
+        foreach ($this->items as $key => $item) {
+            $values = [
+                $item->getKeyword(),
+                $item->getValue(),
+                'boolean',
+            ];
 
-		$res = $this->database->manipulateF(
-			$query,
-			$types,
-			$values
-		);
+            if (!$this->_update($fields, $types, $values, $key)) {
+                $ret = false;
+            }
+        }
 
-		return ($res === false);
-	}
+        return $ret;
+    }
 
-	/**
-	 * Update an entry in database
-	 *
-	 * @param array $fields		Array of fields
-	 * @param array $types		Array of field types
-	 * @param array $values		Array of values to save
-	 * @param int $whereIndex	Entry Keyword from $use_index field
-	 * @return bool
-	 */
-	final private function _update(array $fields, array $types, array $values, string $whereIndex)
-	{
-		$query = 'UPDATE `' . $this->use_table . '` SET ';
-		$query .= implode(' = %s,', $fields) . ' = %s ';
-		$query .= 'WHERE ' . $this->use_index . ' = ' . $this->database->quote($whereIndex, 'text') . ';';
+    public function remove(string $keyword): bool
+    {
+        if (array_key_exists($keyword, $this->items)) {
+            return $this->_delete($keyword);
+        }
 
-		$res = $this->database->manipulateF(
-			$query,
-			$types,
-			$values
-		);
+        return false;
+    }
 
-		return ($res === false);
-	}
+    /**
+     * Load all entries from database
+     * This is not recommended. You should use _loadById() instead.
+     * @return list<array<string, mixed>
+     */
+    private function _load(): array
+    {
+        $select = 'SELECT * FROM `' . $this->use_table . '`;';
 
-	/**
-	 * Delete an entry from database
-	 *
-	 * @param int $whereIndex	Entry Keyword from $use_index field
-	 * @return bool
-	 */
-	final private function _delete(string $whereIndex)
-	{
+        $result = $this->database->query($select);
 
-		$query = 'DELETE FROM `' . $this->use_table . '` WHERE ' . $this->use_index . ' = ' .
-			$this->database->quote($whereIndex, 'text') . ';';
+        return $this->database->fetchAll($result);
+    }
 
-		$res = $this->database->manipulate($query);
+    /**
+     * Create a new entry in database
+     * @param list<string> $fields Array of fields
+     * @param list<string> $types Array of field types
+     * @param list<scalar> $values Array of values to save
+     */
+    private function _create(array $fields, array $types, array $values): bool
+    {
+        $query = 'INSERT INTO `' . $this->use_table . '` ';
+        $query .= '(' . implode(', ', $fields) . ') ';
+        $query .= 'VALUES (' . implode(',', array_fill(0, count($fields), '%s')) . ') ';
 
-		return ($res === false);
-	}
+        $affected_rows = $this->database->manipulateF(
+            $query,
+            $types,
+            $values
+        );
+
+        return $affected_rows === 0;
+    }
+
+    /**
+     * Update an entry in database
+     * @param list<string> $fields Array of fields
+     * @param list<string> $types Array of field types
+     * @param list<scalar> $values Array of values to save
+     */
+    private function _update(array $fields, array $types, array $values, string $whereIndex): bool
+    {
+        $query = 'UPDATE `' . $this->use_table . '` SET ';
+        $query .= implode(' = %s,', $fields) . ' = %s ';
+        $query .= 'WHERE ' . $this->use_index . ' = ' . $this->database->quote($whereIndex, 'text') . ';';
+
+        $affected_rows = $this->database->manipulateF(
+            $query,
+            $types,
+            $values
+        );
+
+        return $affected_rows === 0;
+    }
+
+    private function _delete(string $whereIndex): bool
+    {
+        $query = 'DELETE FROM `' . $this->use_table . '` WHERE ' . $this->use_index . ' = ' .
+            $this->database->quote($whereIndex, 'text') . ';';
+
+        $affected_rows = $this->database->manipulate($query);
+
+        return $affected_rows === 0;
+    }
 }

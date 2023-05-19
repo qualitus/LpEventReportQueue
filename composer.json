@@ -1,0 +1,31 @@
+{
+  "require": {
+    "php": ">=7.4 <8.1",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "QU\\LERQ\\": [
+        "./classes"
+      ]
+    },
+    "classmap": [
+      "./classes"
+    ],
+    "exclude-from-classmap": []
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "classmap-authoritative": true
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "captainhook/plugin-composer": "^5.3",
+    "friendsofphp/php-cs-fixer": "^3.16"
+  },
+  "config": {
+    "allow-plugins": {
+      "captainhook/plugin-composer": true
+    }
+  }
+}
