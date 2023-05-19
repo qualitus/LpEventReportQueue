@@ -15,7 +15,7 @@
 ## Init API
 To init the API you should first check if the plugin autoloader is available:
 ```php
-if(isset($DIC['autoload.lc.lcautoloader']))
+if (isset($DIC['autoload.lc.lcautoloader']))
 ```
 If the autoloader is not available, you should try to init the plugin via 
 ilPluginAdmin like this:

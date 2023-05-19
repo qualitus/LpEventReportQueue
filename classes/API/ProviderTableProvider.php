@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /**
  * This file is part of ILIAS, a powerful learning management system
@@ -14,17 +14,22 @@
  * https://www.ilias.de
  * https://github.com/ILIAS-eLearning
  *
- ********************************************************************
- */
+ *********************************************************************/
+
+declare(strict_types=1);
 
 namespace QU\LERQ\API;
 
 use QU\LERQ\API\Service\Registration;
+use QU\LERQ\Model\RoutinesModel;
 use QU\LERQ\UI\Table\Data\Provider;
 
+/**
+ * @implements Provider<array{"name": string, "path": string, "active_overrides": RoutinesModel, "has_overrides": bool}>
+ */
 class ProviderTableProvider implements Provider
 {
-    public function getList(array $params, array $filter) : array
+    public function getList(array $params, array $filter): array
     {
         $providerRegistration = new Registration();
         $providers = $providerRegistration->load();
