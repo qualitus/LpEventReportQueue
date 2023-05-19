@@ -1,589 +1,491 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\Model;
 
-/**
- * Class UserModel
- * @package QU\LERQ\Model
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
 class UserModel
 {
-	/** @var int */
-	private $usr_id;
-	/** @var string */
-	private $login;
-	/** @var string */
-	private $firstname;
-	/** @var string */
-	private $lastname;
-	/** @var string */
-	private $title;
-	/** @var string */
-	private $gender;
-	/** @var string */
-	private $email;
-	/** @var string */
-	private $institution;
-	/** @var string */
-	private $street;
-	/** @var string */
-	private $city;
-	/** @var string */
-	private $country;
-	/** @var string */
-	private $phone_office;
-	/** @var string */
-	private $hobby;
-	/** @var string */
-	private $department;
-	/** @var string */
-	private $phone_home;
-	/** @var string */
-	private $phone_mobile;
-	/** @var string */
-	private $fax;
-	/** @var string */
-	private $referral_comment;
-	/** @var string */
-	private $matriculation;
-	/** @var int */
-	private $active;
-	/** @var string */
-	private $approval_date;
-	/** @var string */
-	private $agree_date;
-	/** @var string */
-	private $auth_mode;
-	/** @var string */
-	private $ext_account;
-	/** @var string */
-	private $birthday;
-	/** @var array */
-	private $udf_data;
-	/** @var string */
-	private $import_id;
+    /** @var int */
+    private $usr_id;
+    /** @var string */
+    private $login;
+    /** @var string */
+    private $firstname;
+    /** @var string */
+    private $lastname;
+    /** @var string */
+    private $title;
+    /** @var string */
+    private $gender;
+    /** @var string */
+    private $email;
+    /** @var string */
+    private $institution;
+    /** @var string */
+    private $street;
+    /** @var string */
+    private $city;
+    /** @var string */
+    private $country;
+    /** @var string */
+    private $phone_office;
+    /** @var string */
+    private $hobby;
+    /** @var string */
+    private $department;
+    /** @var string */
+    private $phone_home;
+    /** @var string */
+    private $phone_mobile;
+    /** @var string */
+    private $fax;
+    /** @var string */
+    private $referral_comment;
+    /** @var string */
+    private $matriculation;
+    /** @var int */
+    private $active;
+    /** @var string */
+    private $approval_date;
+    /** @var string */
+    private $agree_date;
+    /** @var string */
+    private $auth_mode;
+    /** @var string */
+    private $ext_account;
+    /** @var string */
+    private $birthday;
+    /** @var array */
+    private $udf_data;
+    /** @var string */
+    private $import_id;
 
-	/**
-	 * @return int
-	 */
-	public function getUsrId(): int
-	{
-		return (isset($this->usr_id) ? $this->usr_id : -1);
-	}
+    public function getUsrId(): int
+    {
+        return $this->usr_id ?? -1;
+    }
 
-	/**
-	 * @param int $usr_id
-	 * @return UserModel
-	 */
-	public function setUsrId($usr_id): UserModel
-	{
-		$this->usr_id = $usr_id;
-		return $this;
-	}
+    /**
+     * @param int $usr_id
+     */
+    public function setUsrId($usr_id): self
+    {
+        $this->usr_id = $usr_id;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getLogin(): string
-	{
-		return (isset($this->login) ? $this->login : '');
-	}
+    public function getLogin(): string
+    {
+        return $this->login ?? '';
+    }
 
-	/**
-	 * @param string $login
-	 * @return UserModel
-	 */
-	public function setLogin($login): UserModel
-	{
-		$this->login = $login;
-		return $this;
-	}
+    /**
+     * @param string $login
+     */
+    public function setLogin($login): self
+    {
+        $this->login = $login;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getFirstname(): string
-	{
-		return (isset($this->firstname) ? $this->firstname : '');
-	}
+    public function getFirstname(): string
+    {
+        return $this->firstname ?? '';
+    }
 
-	/**
-	 * @param string $firstname
-	 * @return UserModel
-	 */
-	public function setFirstname($firstname): UserModel
-	{
-		$this->firstname = $firstname;
-		return $this;
-	}
+    /**
+     * @param string $firstname
+     */
+    public function setFirstname($firstname): self
+    {
+        $this->firstname = $firstname;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getLastname(): string
-	{
-		return (isset($this->lastname) ? $this->lastname : '');
-	}
+    public function getLastname(): string
+    {
+        return $this->lastname ?? '';
+    }
 
-	/**
-	 * @param string $lastname
-	 * @return UserModel
-	 */
-	public function setLastname($lastname): UserModel
-	{
-		$this->lastname = $lastname;
-		return $this;
-	}
+    /**
+     * @param string $lastname
+     */
+    public function setLastname($lastname): self
+    {
+        $this->lastname = $lastname;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getTitle(): string
-	{
-		return (isset($this->title) ? $this->title : '');
-	}
+    public function getTitle(): string
+    {
+        return $this->title ?? '';
+    }
 
-	/**
-	 * @param string $title
-	 * @return UserModel
-	 */
-	public function setTitle($title): UserModel
-	{
-		$this->title = $title;
-		return $this;
-	}
+    /**
+     * @param string $title
+     */
+    public function setTitle($title): self
+    {
+        $this->title = $title;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getGender(): string
-	{
-		return (isset($this->gender) ? $this->gender : '');
-	}
+    public function getGender(): string
+    {
+        return $this->gender ?? '';
+    }
 
-	/**
-	 * @param string $gender
-	 * @return UserModel
-	 */
-	public function setGender($gender): UserModel
-	{
-		$this->gender = $gender;
-		return $this;
-	}
+    /**
+     * @param string $gender
+     */
+    public function setGender($gender): self
+    {
+        $this->gender = $gender;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getEmail(): string
-	{
-		return (isset($this->email) ? $this->email : '');
-	}
+    public function getEmail(): string
+    {
+        return $this->email ?? '';
+    }
 
-	/**
-	 * @param string $email
-	 * @return UserModel
-	 */
-	public function setEmail($email): UserModel
-	{
-		$this->email = $email;
-		return $this;
-	}
+    /**
+     * @param string $email
+     */
+    public function setEmail($email): self
+    {
+        $this->email = $email;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getInstitution(): string
-	{
-		return (isset($this->institution) ? $this->institution : '');
-	}
+    public function getInstitution(): string
+    {
+        return $this->institution ?? '';
+    }
 
-	/**
-	 * @param string $institution
-	 * @return UserModel
-	 */
-	public function setInstitution($institution): UserModel
-	{
-		$this->institution = $institution;
-		return $this;
-	}
+    /**
+     * @param string $institution
+     */
+    public function setInstitution($institution): self
+    {
+        $this->institution = $institution;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getStreet(): string
-	{
-		return (isset($this->street) ? $this->street : '');
-	}
+    public function getStreet(): string
+    {
+        return $this->street ?? '';
+    }
 
-	/**
-	 * @param string $street
-	 * @return UserModel
-	 */
-	public function setStreet($street): UserModel
-	{
-		$this->street = $street;
-		return $this;
-	}
+    /**
+     * @param string $street
+     */
+    public function setStreet($street): self
+    {
+        $this->street = $street;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getCity(): string
-	{
-		return (isset($this->city) ? $this->city : '');
-	}
+    public function getCity(): string
+    {
+        return $this->city ?? '';
+    }
 
-	/**
-	 * @param string $city
-	 * @return UserModel
-	 */
-	public function setCity($city): UserModel
-	{
-		$this->city = $city;
-		return $this;
-	}
+    /**
+     * @param string $city
+     */
+    public function setCity($city): self
+    {
+        $this->city = $city;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getCountry(): string
-	{
-		return (isset($this->country) ? $this->country : '');
-	}
+    public function getCountry(): string
+    {
+        return $this->country ?? '';
+    }
 
-	/**
-	 * @param string $country
-	 * @return UserModel
-	 */
-	public function setCountry($country): UserModel
-	{
-		$this->country = $country;
-		return $this;
-	}
+    /**
+     * @param string $country
+     */
+    public function setCountry($country): self
+    {
+        $this->country = $country;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getPhoneOffice(): string
-	{
-		return (isset($this->phone_office) ? $this->phone_office : '');
-	}
+    public function getPhoneOffice(): string
+    {
+        return $this->phone_office ?? '';
+    }
 
-	/**
-	 * @param string $phone_office
-	 * @return UserModel
-	 */
-	public function setPhoneOffice($phone_office): UserModel
-	{
-		$this->phone_office = $phone_office;
-		return $this;
-	}
+    /**
+     * @param string $phone_office
+     */
+    public function setPhoneOffice($phone_office): self
+    {
+        $this->phone_office = $phone_office;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getHobby(): string
-	{
-		return (isset($this->hobby) ? $this->hobby : '');
-	}
+    public function getHobby(): string
+    {
+        return $this->hobby ?? '';
+    }
 
-	/**
-	 * @param string $hobby
-	 * @return UserModel
-	 */
-	public function setHobby($hobby): UserModel
-	{
-		$this->hobby = $hobby;
-		return $this;
-	}
+    /**
+     * @param string $hobby
+     */
+    public function setHobby($hobby): self
+    {
+        $this->hobby = $hobby;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getDepartment(): string
-	{
-		return (isset($this->department) ? $this->department : '');
-	}
+    public function getDepartment(): string
+    {
+        return $this->department ?? '';
+    }
 
-	/**
-	 * @param string $department
-	 * @return UserModel
-	 */
-	public function setDepartment($department): UserModel
-	{
-		$this->department = $department;
-		return $this;
-	}
+    /**
+     * @param string $department
+     */
+    public function setDepartment($department): self
+    {
+        $this->department = $department;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getPhoneHome(): string
-	{
-		return (isset($this->phone_home) ? $this->phone_home : '');
-	}
+    public function getPhoneHome(): string
+    {
+        return $this->phone_home ?? '';
+    }
 
-	/**
-	 * @param string $phone_home
-	 * @return UserModel
-	 */
-	public function setPhoneHome($phone_home): UserModel
-	{
-		$this->phone_home = $phone_home;
-		return $this;
-	}
+    /**
+     * @param string $phone_home
+     */
+    public function setPhoneHome($phone_home): self
+    {
+        $this->phone_home = $phone_home;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getPhoneMobile(): string
-	{
-		return (isset($this->phone_mobile) ? $this->phone_mobile : '');
-	}
+    public function getPhoneMobile(): string
+    {
+        return $this->phone_mobile ?? '';
+    }
 
-	/**
-	 * @param string $phone_mobile
-	 * @return UserModel
-	 */
-	public function setPhoneMobile($phone_mobile): UserModel
-	{
-		$this->phone_mobile = $phone_mobile;
-		return $this;
-	}
+    /**
+     * @param string $phone_mobile
+     */
+    public function setPhoneMobile($phone_mobile): self
+    {
+        $this->phone_mobile = $phone_mobile;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getFax(): string
-	{
-		return (isset($this->fax) ? $this->fax : '');
-	}
+    public function getFax(): string
+    {
+        return $this->fax ?? '';
+    }
 
-	/**
-	 * @param string $fax
-	 * @return UserModel
-	 */
-	public function setFax($fax): UserModel
-	{
-		$this->fax = $fax;
-		return $this;
-	}
+    /**
+     * @param string $fax
+     */
+    public function setFax($fax): self
+    {
+        $this->fax = $fax;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getReferralComment(): string
-	{
-		return (isset($this->referral_comment) ? $this->referral_comment : '');
-	}
+    public function getReferralComment(): string
+    {
+        return $this->referral_comment ?? '';
+    }
 
-	/**
-	 * @param string $referral_comment
-	 * @return UserModel
-	 */
-	public function setReferralComment($referral_comment): UserModel
-	{
-		$this->referral_comment = $referral_comment;
-		return $this;
-	}
+    /**
+     * @param string $referral_comment
+     */
+    public function setReferralComment($referral_comment): self
+    {
+        $this->referral_comment = $referral_comment;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getMatriculation(): string
-	{
-		return (isset($this->matriculation) ? $this->matriculation : '');
-	}
+    public function getMatriculation(): string
+    {
+        return $this->matriculation ?? '';
+    }
 
-	/**
-	 * @param string $matriculation
-	 * @return UserModel
-	 */
-	public function setMatriculation($matriculation): UserModel
-	{
-		$this->matriculation = $matriculation;
-		return $this;
-	}
+    /**
+     * @param string $matriculation
+     */
+    public function setMatriculation($matriculation): self
+    {
+        $this->matriculation = $matriculation;
+        return $this;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getActive(): int
-	{
-		return (isset($this->active) ? $this->active : -1);
-	}
+    public function getActive(): int
+    {
+        return $this->active ?? -1;
+    }
 
-	/**
-	 * @param int $active
-	 * @return UserModel
-	 */
-	public function setActive($active): UserModel
-	{
-		$this->active = $active;
-		return $this;
-	}
+    /**
+     * @param int $active
+     */
+    public function setActive($active): self
+    {
+        $this->active = $active;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getApprovalDate(): string
-	{
-		return (isset($this->approval_date) ? $this->approval_date : '');
-	}
+    public function getApprovalDate(): string
+    {
+        return $this->approval_date ?? '';
+    }
 
-	/**
-	 * @param string $approval_date
-	 * @return UserModel
-	 */
-	public function setApprovalDate($approval_date): UserModel
-	{
-		$this->approval_date = $approval_date;
-		return $this;
-	}
+    /**
+     * @param string $approval_date
+     */
+    public function setApprovalDate($approval_date): self
+    {
+        $this->approval_date = $approval_date;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getAgreeDate(): string
-	{
-		return (isset($this->agree_date) ? $this->agree_date : '');
-	}
+    public function getAgreeDate(): string
+    {
+        return $this->agree_date ?? '';
+    }
 
-	/**
-	 * @param string $agree_date
-	 * @return UserModel
-	 */
-	public function setAgreeDate($agree_date): UserModel
-	{
-		$this->agree_date = $agree_date;
-		return $this;
-	}
+    /**
+     * @param string $agree_date
+     */
+    public function setAgreeDate($agree_date): self
+    {
+        $this->agree_date = $agree_date;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getAuthMode(): string
-	{
-		return (isset($this->auth_mode) ? $this->auth_mode : '');
-	}
+    public function getAuthMode(): string
+    {
+        return $this->auth_mode ?? '';
+    }
 
-	/**
-	 * @param string $auth_mode
-	 * @return UserModel
-	 */
-	public function setAuthMode($auth_mode): UserModel
-	{
-		$this->auth_mode = $auth_mode;
-		return $this;
-	}
+    /**
+     * @param string $auth_mode
+     */
+    public function setAuthMode($auth_mode): self
+    {
+        $this->auth_mode = $auth_mode;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getExtAccount(): string
-	{
-		return (isset($this->ext_account) ? $this->ext_account : '');
-	}
+    public function getExtAccount(): string
+    {
+        return $this->ext_account ?? '';
+    }
 
-	/**
-	 * @param string $ext_account
-	 * @return UserModel
-	 */
-	public function setExtAccount($ext_account): UserModel
-	{
-		$this->ext_account = $ext_account;
-		return $this;
-	}
+    /**
+     * @param string $ext_account
+     */
+    public function setExtAccount($ext_account): self
+    {
+        $this->ext_account = $ext_account;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getBirthday(): string
-	{
-		return (isset($this->birthday) ? $this->birthday : '');
-	}
+    public function getBirthday(): string
+    {
+        return $this->birthday ?? '';
+    }
 
-	/**
-	 * @param string $birthday
-	 * @return UserModel
-	 */
-	public function setBirthday($birthday): UserModel
-	{
-		$this->birthday = $birthday;
-		return $this;
-	}
+    /**
+     * @param string $birthday
+     */
+    public function setBirthday($birthday): self
+    {
+        $this->birthday = $birthday;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getImportId(): string
-	{
-		return (isset($this->import_id) ? $this->import_id : '');
-	}
+    public function getImportId(): string
+    {
+        return $this->import_id ?? '';
+    }
 
-	/**
-	 * @param string $import_id
-	 * @return UserModel
-	 */
-	public function setImportId($import_id): UserModel
-	{
-		$this->import_id = $import_id;
-		return $this;
-	}
+    /**
+     * @param string $import_id
+     */
+    public function setImportId($import_id): self
+    {
+        $this->import_id = $import_id;
+        return $this;
+    }
 
-	/**
-	 * @return array
-	 */
-	public function getUdfData(): array
-	{
-		return (isset($this->udf_data) ? $this->udf_data : []);
-	}
+    /**
+     * @return array
+     */
+    public function getUdfData(): array
+    {
+        return $this->udf_data ?? [];
+    }
 
-	/**
-	 * @param array $udf_data
-	 * @return UserModel
-	 */
-	public function setUdfData($udf_data): UserModel
-	{
-		$this->udf_data = $udf_data;
-		return $this;
-	}
+    /**
+     * @param array $udf_data
+     */
+    public function setUdfData($udf_data): self
+    {
+        $this->udf_data = $udf_data;
+        return $this;
+    }
 
-	/**
-	 * @return false|string
-	 */
-	public function __toString()
-	{
-		return json_encode([
-			'usr_id' => $this->getUsrId(),
-			'username' => $this->getLogin(),
-			'firstname' => $this->getFirstname(),
-			'lastname' => $this->getLastname(),
-			'title' => $this->getTitle(),
-			'gender' => $this->getGender(),
-			'email' => $this->getEmail(),
-			'institution' => $this->getInstitution(),
-			'street' => $this->getStreet(),
-			'city' => $this->getCity(),
-			'country' => $this->getCountry(),
-			'phone_office' => $this->getPhoneOffice(),
-			'hobby' => $this->getHobby(),
-			'department' => $this->getDepartment(),
-			'phone_home' => $this->getPhoneHome(),
-			'phone_mobile' => $this->getPhoneMobile(),
-			'phone_fax' => $this->getFax(),
-			'referral_comment' => $this->getReferralComment(),
-			'matriculation' => $this->getMatriculation(),
-			'active' => ($this->getActive() == 1),
-			'approval_date' => $this->getApprovalDate(),
-			'agree_date' => $this->getAgreeDate(),
-			'auth_mode' => $this->getAuthMode(),
-			'ext_account' => $this->getExtAccount(),
-			'birthday' => $this->getBirthday(),
-			'import_id' => $this->getImportId(),
-			'udf_data' => $this->getUdfData(),
-		]);
-	}
+    public function __toString(): string
+    {
+        return json_encode([
+            'usr_id' => $this->getUsrId(),
+            'username' => $this->getLogin(),
+            'firstname' => $this->getFirstname(),
+            'lastname' => $this->getLastname(),
+            'title' => $this->getTitle(),
+            'gender' => $this->getGender(),
+            'email' => $this->getEmail(),
+            'institution' => $this->getInstitution(),
+            'street' => $this->getStreet(),
+            'city' => $this->getCity(),
+            'country' => $this->getCountry(),
+            'phone_office' => $this->getPhoneOffice(),
+            'hobby' => $this->getHobby(),
+            'department' => $this->getDepartment(),
+            'phone_home' => $this->getPhoneHome(),
+            'phone_mobile' => $this->getPhoneMobile(),
+            'phone_fax' => $this->getFax(),
+            'referral_comment' => $this->getReferralComment(),
+            'matriculation' => $this->getMatriculation(),
+            'active' => $this->getActive() == 1,
+            'approval_date' => $this->getApprovalDate(),
+            'agree_date' => $this->getAgreeDate(),
+            'auth_mode' => $this->getAuthMode(),
+            'ext_account' => $this->getExtAccount(),
+            'birthday' => $this->getBirthday(),
+            'import_id' => $this->getImportId(),
+            'udf_data' => $this->getUdfData(),
+        ], JSON_THROW_ON_ERROR);
+    }
 }
