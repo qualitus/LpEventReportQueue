@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 /**
  * This file is part of ILIAS, a powerful learning management system
@@ -17,7 +19,6 @@
  ********************************************************************
  */
 
-
 namespace QU\LERQ\UI\Table\Formatter;
 
 use ilDatePresentation;
@@ -26,7 +27,7 @@ use QU\LERQ\UI\Table\Formatter;
 
 class TimestampFormatter implements Formatter
 {
-    public function format($value) : string
+    public function format($value): string
     {
         assert(is_int($value), '$value is not an integer');
 

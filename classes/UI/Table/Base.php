@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /**
  * This file is part of ILIAS, a powerful learning management system
@@ -14,34 +14,37 @@
  * https://www.ilias.de
  * https://github.com/ILIAS-eLearning
  *
- ********************************************************************
- */
+ *********************************************************************/
+
+declare(strict_types=1);
 
 namespace QU\LERQ\UI\Table;
 
 use QU\LERQ\UI\Table\Data\Provider;
 use ilTable2GUI;
 
+/**
+ *  @template T
+ */
 abstract class Base extends ilTable2GUI
 {
-    /** @var Provider|null */
-    protected $provider;
-    /** @var array */
-    protected $visibleOptionalColumns = [];
-    /** @var array */
-    protected $optionalColumns = [];
-    /** @var array */
-    protected $filter = [];
-    /** @var array */
-    protected $optional_filter = [];
+    protected ?Provider $provider = null;
+    /** @var array<string, string> */
+    protected array $visibleOptionalColumns = [];
+    /** @var array<string, array{'field': string, 'txt': string, 'default': bool, "optional"?: bool, "sortable": bool, "is_checkbox"?: bool, "width"?: string}> */
+    protected array $optionalColumns = [];
+    /** @var array<string, mixed> */
+    protected array $filter = [];
+    /** @var array<string, mixed> */
+    protected array $optional_filter = [];
 
     public function __construct(object $a_parent_obj, string $command = '')
     {
         parent::__construct($a_parent_obj, $command, '');
 
         $columns = $this->getColumnDefinition();
-        $this->optionalColumns = (array) $this->getSelectableColumns();
-        $this->visibleOptionalColumns = (array) $this->getSelectedColumns();
+        $this->optionalColumns = $this->getSelectableColumns();
+        $this->visibleOptionalColumns = $this->getSelectedColumns();
 
         foreach ($columns as $index => $column) {
             if ($this->isColumnVisible($index)) {
@@ -55,7 +58,7 @@ abstract class Base extends ilTable2GUI
         }
     }
 
-    public function withProvider(Provider $provider) : self
+    public function withProvider(Provider $provider): self
     {
         $clone = clone $this;
         $clone->provider = $provider;
@@ -63,42 +66,40 @@ abstract class Base extends ilTable2GUI
         return $clone;
     }
 
-    public function getProvider() : ? Provider
+    public function getProvider(): ?Provider
     {
         return $this->provider;
     }
 
     /**
      * This method can be used to add parameters or filter values passed to the provider
-     * @param array $params
-     * @param array $filter
+     * @param array<string, mixed> $params
+     * @param array<string, mixed> $filter
      */
-    protected function onBeforeDataFetched(array &$params, array &$filter) : void
+    protected function onBeforeDataFetched(array &$params, array &$filter): void
     {
     }
 
     /**
      * This method can be used to add some field values dynamically or manipulate existing values of the table row array
-     * @param array $row
+     * @param array<string, mixed> $row
      */
-    protected function prepareRow(array &$row) : void
+    protected function prepareRow(array &$row): void
     {
     }
 
     /**
-     * @param array $data
+     * @param array{items: list<T>, cnt: int} $data
      */
-    protected function preProcessData(array &$data) : void
+    protected function preProcessData(array &$data): void
     {
     }
 
     /**
      * Define a final formatting for a cell value
-     * @param string $column
-     * @param array  $row
-     * @return string
+     * @param array<string, mixed> $row
      */
-    protected function formatCellValue(string $column, array $row) : string
+    protected function formatCellValue(string $column, array $row): string
     {
         if (is_scalar($row[$column])) {
             return trim((string) $row[$column]);
@@ -107,9 +108,12 @@ abstract class Base extends ilTable2GUI
         return '';
     }
 
-    public function getSelectableColumns()
+    /**
+     * @return array<string, array{'field': string, 'txt': string, 'default': bool, "optional"?: bool, "sortable": bool, "is_checkbox"?: bool, "width"?: string}>
+     */
+    public function getSelectableColumns(): array
     {
-        $optionalColumns = array_filter($this->getColumnDefinition(), static function (array $column) : bool {
+        $optionalColumns = array_filter($this->getColumnDefinition(), static function (array $column): bool {
             return isset($column['optional']) && $column['optional'];
         });
 
@@ -121,7 +125,7 @@ abstract class Base extends ilTable2GUI
         return $columns;
     }
 
-    protected function isColumnVisible(int $index) : bool
+    protected function isColumnVisible(int $index): bool
     {
         $columnDefinition = $this->getColumnDefinition();
         if (array_key_exists($index, $columnDefinition)) {
@@ -130,10 +134,8 @@ abstract class Base extends ilTable2GUI
                 return true;
             }
 
-            if (
-                is_array($this->visibleOptionalColumns) &&
-                array_key_exists($column['field'], $this->visibleOptionalColumns)
-            ) {
+            if (is_array($this->visibleOptionalColumns) &&
+                array_key_exists($column['field'], $this->visibleOptionalColumns)) {
                 return true;
             }
         }
@@ -141,12 +143,9 @@ abstract class Base extends ilTable2GUI
         return false;
     }
 
-    /**
-     * @param array $row
-     */
-    final protected function fillRow($row) : void
+    final protected function fillRow(array $a_set): void
     {
-        $this->prepareRow($row);
+        $this->prepareRow($a_set);
 
         foreach ($this->getColumnDefinition() as $index => $column) {
             if (!$this->isColumnVisible($index)) {
@@ -154,8 +153,8 @@ abstract class Base extends ilTable2GUI
             }
 
             $this->tpl->setCurrentBlock('column');
-            $value = $this->formatCellValue($column['field'], $row);
-            if ((string) $value === '') {
+            $value = $this->formatCellValue($column['field'], $a_set);
+            if ($value === '') {
                 $this->tpl->touchBlock('column');
             } else {
                 $this->tpl->setVariable('COLUMN_VALUE', $value);
@@ -165,16 +164,17 @@ abstract class Base extends ilTable2GUI
         }
     }
 
-    abstract protected function getColumnDefinition() : array;
+    /**
+     * @return non-empty-list<array{'field': string, 'txt': string, 'default': bool, "optional"?: bool, "sortable": bool, "is_checkbox"?: bool, "width"?: string}>
+     */
+    abstract protected function getColumnDefinition(): array;
 
-    public function populate() : self
+    public function populate(): self
     {
         if ($this->getExternalSegmentation() && $this->getExternalSorting()) {
             $this->determineOffsetAndOrder();
-        } else {
-            if (!$this->getExternalSegmentation() && $this->getExternalSorting()) {
-                $this->determineOffsetAndOrder(true);
-            }
+        } elseif (!$this->getExternalSegmentation() && $this->getExternalSorting()) {
+            $this->determineOffsetAndOrder(true);
         }
 
         $params = [];
@@ -188,7 +188,7 @@ abstract class Base extends ilTable2GUI
         }
 
         $this->determineSelectedFilters();
-        $filter = (array) $this->filter;
+        $filter = $this->filter;
 
         foreach ($this->optional_filter as $key => $value) {
             if ($this->isFilterSelected($key)) {
@@ -212,7 +212,7 @@ abstract class Base extends ilTable2GUI
 
         $this->setData($data['items']);
         if ($this->getExternalSegmentation()) {
-            $this->setMaxCount($data['cnt']);
+            $this->setMaxCount($data['cnt'] ?? 0);
         }
 
         return $this;
