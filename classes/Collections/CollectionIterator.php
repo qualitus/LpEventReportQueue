@@ -22,11 +22,11 @@ use Iterator;
 
 class CollectionIterator implements Iterator
 {
-    /** @var array */
+    /** @var list<array{"id": numeric-string, "event-type": string, "progress": null|string, "assignment": null|string, "user_data": string, "obj_data": string, "mem_data": string, "timestamp": numeric-string, "course_start": null|numeric-string, "course_end": null|numeric-string, "progress_changed": null|numeric-string}> */
     private array $items;
 
     /**
-     * @param array $items
+     * @param list<array{"id": numeric-string, "event-type": string, "progress": null|string, "assignment": null|string, "user_data": string, "obj_data": string, "mem_data": string, "timestamp": numeric-string, "course_start": null|numeric-string, "course_end": null|numeric-string, "progress_changed": null|numeric-string}> $items
      */
     public function __construct(array $items)
     {
@@ -34,7 +34,7 @@ class CollectionIterator implements Iterator
     }
 
     /**
-     * @return mixed
+     * @return false|array{"id": numeric-string, "event-type": string, "progress": null|string, "assignment": null|string, "user_data": string, "obj_data": string, "mem_data": string, "timestamp": numeric-string, "course_start": null|numeric-string, "course_end": null|numeric-string, "progress_changed": null|numeric-string}
      */
     public function current()
     {
@@ -61,6 +61,6 @@ class CollectionIterator implements Iterator
 
     public function rewind(): void
     {
-        $item = reset($this->items);
+        reset($this->items);
     }
 }

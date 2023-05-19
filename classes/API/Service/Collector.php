@@ -186,9 +186,9 @@ class Collector
     }
 
     /**
-     * @param list<array<string, mixed>> $items
+     * @param list<array{"id": numeric-string, "event-type": string, "progress": null|string, "assignment": null|string, "user_data": string, "obj_data": string, "mem_data": string, "timestamp": numeric-string, "course_start": null|numeric-string, "course_end": null|numeric-string, "progress_changed": null|numeric-string}> $items
      */
-    private function queryQueue(string $query, array &$items = [])
+    private function queryQueue(string $query, array &$items = []): void
     {
         $res = $this->database->query($query);
 
@@ -198,7 +198,7 @@ class Collector
     }
 
     /**
-     * @param list<array<string, mixed>> $items
+     * @param list<array{"id": numeric-string, "event-type": string, "progress": null|string, "assignment": null|string, "user_data": string, "obj_data": string, "mem_data": string, "timestamp": numeric-string, "course_start": null|numeric-string, "course_end": null|numeric-string, "progress_changed": null|numeric-string}> $items
      * @return list<array<int, QueueModel>>
      */
     private function buildModels(array $items): array
@@ -273,7 +273,7 @@ class Collector
             $qm->setMemData($mm);
             unset($item_mm, $mm);
 
-            $models[$item['id']] = $qm;
+            $models[(int) $item['id']] = $qm;
             unset($qm);
         }
 
