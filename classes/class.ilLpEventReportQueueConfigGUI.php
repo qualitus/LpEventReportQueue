@@ -461,7 +461,7 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
             'progress' => 0,
             'started_ts' => time(),
             'finished_ts' => null,
-            'last_item' => 0,
+            'last_item' => 0
         ];
         $DIC->settings()->set('lerq_bgtask_init', json_encode($task_info, JSON_THROW_ON_ERROR));
 

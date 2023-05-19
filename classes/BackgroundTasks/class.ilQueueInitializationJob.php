@@ -541,7 +541,7 @@ class ilQueueInitializationJob extends AbstractJob
             'progress' => 0,
             'started_ts' => time(),
             'finished_ts' => null,
-            'last_item' => 0,
+            'last_item' => 0
         ];
 
         $settings->set($this->db_table, json_encode($task_info, JSON_THROW_ON_ERROR));
