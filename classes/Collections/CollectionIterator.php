@@ -1,68 +1,66 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\Collections;
 
-/**
- * Class CollectionIterator
- * @package QU\LERQ\Collections
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
-class CollectionIterator implements \Iterator
+use Iterator;
+
+class CollectionIterator implements Iterator
 {
-	/** @var array  */
-	private $items;
+    /** @var array */
+    private array $items;
 
-	/**
-	 * CollectionIterator constructor.
-	 * @param array $items
-	 */
-	public function __construct(array $items)
-	{
-		$this->items = $items;
-	}
+    /**
+     * @param array $items
+     */
+    public function __construct(array $items)
+    {
+        $this->items = $items;
+    }
 
-	/**
-	 * @return mixed
-	 */
-	public function current()
-	{
-		$item = current($this->items);
-		return $item;
-	}
+    /**
+     * @return mixed
+     */
+    public function current()
+    {
+        return current($this->items);
+    }
 
-	/**
-	 * @return void
-	 */
-	public function next()
-	{
-		next($this->items);
-	}
+    public function next(): void
+    {
+        next($this->items);
+    }
 
-	/**
-	 * @return int|mixed|string|null
-	 */
-	public function key()
-	{
-		$key = key($this->items);
-		return $key;
-	}
+    /**
+     * @return int|string|null
+     */
+    public function key()
+    {
+        return key($this->items);
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function valid()
-	{
-		$valid = $this->current() !== false;
-		return $valid;
-	}
+    public function valid(): bool
+    {
+        return $this->current() !== false;
+    }
 
-	/**
-	 * @return void
-	 */
-	public function rewind()
-	{
-		$item = reset($this->items);
-	}
-
+    public function rewind(): void
+    {
+        $item = reset($this->items);
+    }
 }
