@@ -1,128 +1,94 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\Model;
 
-/**
- * Class RoutinesModel
- * @package QU\LERQ\Model
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
 class RoutinesModel
 {
-	/** @var bool */
-	private $collectUserData;
-	/** @var bool */
-	private $collectUDFData;
-	/** @var bool */
-	private $collectMemberData;
-	/** @var bool */
-	private $collectLpPeriod;
-	/** @var bool */
-	private $collectObjectData;
+    private bool $collectUserData = false;
+    private bool $collectUDFData = false;
+    private bool $collectMemberData = false;
+    private bool $collectLpPeriod = false;
+    private bool $collectObjectData = false;
 
-	/**
-	 * @return bool
-	 */
-	public function getCollectUserData(): bool
-	{
-		return (isset($this->collectUserData) ? $this->collectUserData : false);
-	}
+    public function getCollectUserData(): bool
+    {
+        return $this->collectUserData ?? false;
+    }
 
-	/**
-	 * @param bool $collectUserData
-	 * @return RoutinesModel
-	 */
-	public function setCollectUserData(bool $collectUserData): RoutinesModel
-	{
-		$this->collectUserData = $collectUserData;
-		return $this;
-	}
+    public function setCollectUserData(bool $collectUserData): self
+    {
+        $this->collectUserData = $collectUserData;
+        return $this;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function getCollectUDFData(): bool
-	{
-		return (isset($this->collectUDFData) ? $this->collectUDFData : false);
-	}
+    public function getCollectUDFData(): bool
+    {
+        return $this->collectUDFData ?? false;
+    }
 
-	/**
-	 * @param bool $collectUDFData
-	 * @return RoutinesModel
-	 */
-	public function setCollectUDFData(bool $collectUDFData): RoutinesModel
-	{
-		$this->collectUDFData = $collectUDFData;
-		return $this;
-	}
+    public function setCollectUDFData(bool $collectUDFData): self
+    {
+        $this->collectUDFData = $collectUDFData;
+        return $this;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function getCollectMemberData(): bool
-	{
-		return (isset($this->collectMemberData) ? $this->collectMemberData : false);
-	}
+    public function getCollectMemberData(): bool
+    {
+        return $this->collectMemberData ?? false;
+    }
 
-	/**
-	 * @param bool $collectMemberData
-	 * @return RoutinesModel
-	 */
-	public function setCollectMemberData(bool $collectMemberData): RoutinesModel
-	{
-		$this->collectMemberData = $collectMemberData;
-		return $this;
-	}
+    public function setCollectMemberData(bool $collectMemberData): self
+    {
+        $this->collectMemberData = $collectMemberData;
+        return $this;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function getCollectLpPeriod(): bool
-	{
-		return (isset($this->collectLpPeriod) ? $this->collectLpPeriod : false);
-	}
+    public function getCollectLpPeriod(): bool
+    {
+        return $this->collectLpPeriod ?? false;
+    }
 
-	/**
-	 * @param bool $collectLpPeriod
-	 * @return RoutinesModel
-	 */
-	public function setCollectLpPeriod(bool $collectLpPeriod): RoutinesModel
-	{
-		$this->collectLpPeriod = $collectLpPeriod;
-		return $this;
-	}
+    public function setCollectLpPeriod(bool $collectLpPeriod): self
+    {
+        $this->collectLpPeriod = $collectLpPeriod;
+        return $this;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function getCollectObjectData(): bool
-	{
-		return (isset($this->collectObjectData) ? $this->collectObjectData : false);
-	}
+    public function getCollectObjectData(): bool
+    {
+        return $this->collectObjectData ?? false;
+    }
 
-	/**
-	 * @param bool $collectObjectData
-	 * @return RoutinesModel
-	 */
-	public function setCollectObjectData(bool $collectObjectData): RoutinesModel
-	{
-		$this->collectObjectData = $collectObjectData;
-		return $this;
-	}
+    public function setCollectObjectData(bool $collectObjectData): self
+    {
+        $this->collectObjectData = $collectObjectData;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function __toString()
-	{
-		return json_encode([
-			'collectUserData' => $this->getCollectUserData(),
-			'collectUDFData' => $this->getCollectUDFData(),
-			'collectMemberData' => $this->getCollectMemberData(),
-			'collectLpPeriod' => $this->getCollectLpPeriod(),
-			'getCollectObjectData' => $this->getCollectObjectData(),
-		]);
-	}
-
+    public function __toString(): string
+    {
+        return json_encode([
+            'collectUserData' => $this->getCollectUserData(),
+            'collectUDFData' => $this->getCollectUDFData(),
+            'collectMemberData' => $this->getCollectMemberData(),
+            'collectLpPeriod' => $this->getCollectLpPeriod(),
+            'getCollectObjectData' => $this->getCollectObjectData(),
+        ], JSON_THROW_ON_ERROR);
+    }
 }

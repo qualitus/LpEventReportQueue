@@ -1,106 +1,97 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\Model;
 
-/**
- * Class MemberModel
- * @package QU\LERQ\Model
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
 class MemberModel
 {
-	/** @var string */
-	private $member_role;
-	/** @var string */
-	private $course_title;
-	/** @var int */
-	private $course_id;
-	/** @var int */
-	private $course_ref_id;
+    /** @var string */
+    private $member_role;
+    /** @var string */
+    private $course_title;
+    /** @var int */
+    private $course_id;
+    /** @var int */
+    private $course_ref_id;
 
-	/**
-	 * @return string
-	 */
-	public function getMemberRole(): string
-	{
-		return (isset($this->member_role) ? $this->member_role : '');
-	}
+    public function getMemberRole(): string
+    {
+        return $this->member_role ?? '';
+    }
 
-	/**
-	 * @param string $member_role
-	 * @return MemberModel
-	 */
-	public function setMemberRole($member_role): MemberModel
-	{
-		$this->member_role = $member_role;
-		return $this;
-	}
+    /**
+     * @param string $member_role
+     */
+    public function setMemberRole($member_role): self
+    {
+        $this->member_role = $member_role;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getCourseTitle(): string
-	{
-		return (isset($this->course_title) ? $this->course_title : '');
-	}
+    public function getCourseTitle(): string
+    {
+        return $this->course_title ?? '';
+    }
 
-	/**
-	 * @param string $course_title
-	 * @return MemberModel
-	 */
-	public function setCourseTitle($course_title): MemberModel
-	{
-		$this->course_title = $course_title;
-		return $this;
-	}
+    /**
+     * @param string $course_title
+     */
+    public function setCourseTitle($course_title): self
+    {
+        $this->course_title = $course_title;
+        return $this;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getCourseId(): int
-	{
-		return (isset($this->course_id) ? $this->course_id : -1);
-	}
+    public function getCourseId(): int
+    {
+        return $this->course_id ?? -1;
+    }
 
-	/**
-	 * @param int $course_id
-	 * @return MemberModel
-	 */
-	public function setCourseId($course_id): MemberModel
-	{
-		$this->course_id = $course_id;
-		return $this;
-	}
+    /**
+     * @param int $course_id
+     */
+    public function setCourseId($course_id): self
+    {
+        $this->course_id = $course_id;
+        return $this;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getCourseRefId(): int
-	{
-		return (isset($this->course_ref_id) ? $this->course_ref_id : -1);
-	}
+    public function getCourseRefId(): int
+    {
+        return $this->course_ref_id ?? -1;
+    }
 
-	/**
-	 * @param int $course_ref_id
-	 * @return MemberModel
-	 */
-	public function setCourseRefId($course_ref_id): MemberModel
-	{
-		$this->course_ref_id = $course_ref_id;
-		return $this;
-	}
+    /**
+     * @param int $course_ref_id
+     */
+    public function setCourseRefId($course_ref_id): self
+    {
+        $this->course_ref_id = $course_ref_id;
+        return $this;
+    }
 
-	/**
-	 * @return false|string
-	 */
-	public function __toString()
-	{
-		return json_encode([
-			'role' => $this->getMemberRole(),
-			'course_title' => $this->getCourseTitle(),
-			'course_id' => $this->getCourseId(),
-			'course_ref_id' => $this->getCourseRefId(),
-		]);
-	}
+    public function __toString(): string
+    {
+        return json_encode([
+            'role' => $this->getMemberRole(),
+            'course_title' => $this->getCourseTitle(),
+            'course_id' => $this->getCourseId(),
+            'course_ref_id' => $this->getCourseRefId(),
+        ], JSON_THROW_ON_ERROR);
+    }
 }
