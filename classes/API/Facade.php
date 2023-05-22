@@ -25,12 +25,6 @@ interface Facade
      *
      * This SHOULD be called in the plugins afterActivation() function
      * This MUST be called if the provider has capture overrides
-     *
-     * @param string $name			Plugin Name
-     * @param string $namespace		Plugin Namespace
-     * @param string $path			Plugin root path (realpath)
-     * @param bool $hasOverrides	Does the plugin has overrides? (default: false)
-     * @return bool
      */
     public function registerProvider(string $name, string $namespace, string $path, bool $hasOverrides = false): bool;
 
@@ -40,12 +34,6 @@ interface Facade
      * Only $path and $hasOverrides are updatable.
      * If you need to change $name or $namespace, you MUST use the
      * unregisterProvider() and then again the registerProvider() function.
-     *
-     * @param string $name
-     * @param string $namespace
-     * @param string $path
-     * @param bool $hasOverrides
-     * @return bool
      */
     public function updateProvider(string $name, string $namespace, string $path, bool $hasOverrides = null): bool;
 
@@ -53,10 +41,6 @@ interface Facade
      * Unregister a provider plugin
      *
      * This SHOULD be called in the plugins beforeUninstall() function
-     *
-     * @param string $name
-     * @param string $namespace
-     * @return bool
      */
     public function unregisterProvider(string $name, string $namespace): bool;
 
@@ -96,8 +80,6 @@ interface Facade
      *   Filter for Event
      * ->setProgressChanged(string $progress_changed, int $before_after)
      *   Filter for last progress change (UTC Timestamp)
-     *
-     * @return Filter\FilterObject
      */
     public function createFilterObject(): \QU\LERQ\API\Filter\FilterObject;
 
@@ -115,10 +97,11 @@ interface Facade
      * ->getIterator(bool $getnew)
      *   Get the CollectionIterator object (a new instance if $getnew is true) | Default: false
      *
-     * @param Filter\FilterObject $filter    Filter object from createFilterObject()
-     * @param bool $no_convert               If True, the collection holds only arrays, otherwise
+     * @param bool $no_convert If True, the collection holds only arrays, otherwise
      *                                       it holds an array of objects (see \QU\LERQ\Model\QueueModel)
-     * @return \QU\LERQ\Collections\QueueCollection
      */
-    public function getCollection(\QU\LERQ\API\Filter\FilterObject $filter, bool $no_convert = false): \QU\LERQ\Collections\QueueCollection;
+    public function getCollection(
+        \QU\LERQ\API\Filter\FilterObject $filter,
+        bool $no_convert = false
+    ): \QU\LERQ\Collections\QueueCollection;
 }

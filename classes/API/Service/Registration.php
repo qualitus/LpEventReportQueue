@@ -18,9 +18,12 @@
 
 namespace QU\LERQ\API\Service;
 
+use Exception;
+use ilDBConstants;
 use QU\LERQ\API\DataCaptureRoutinesInterface;
 use QU\LERQ\Model\ProviderModel;
 use QU\LERQ\Model\RoutinesModel;
+use Throwable;
 
 class Registration
 {
@@ -56,7 +59,6 @@ class Registration
     public function loadByNamespace(string $namespace)
     {
         $providers = $this->_load();
-        /** @var ProviderModel $provider */
         foreach ($providers as $provider) {
             if ($provider->getNamespace() === $namespace) {
                 return $provider;
@@ -85,13 +87,13 @@ class Registration
                     if ($overrideClass instanceof DataCaptureRoutinesInterface) {
                         $overrides = $overrideClass->getOverrides();
                         // @Todo change setters below to prevent errors if provider does not support newest overrides (isset() ? :)
-                        $routines->setCollectUserData($overrides['collectUserData'])
-                            ->setCollectUDFData($overrides['collectUDFData'])
-                            ->setCollectMemberData($overrides['collectMemberData'])
-                            ->setCollectLpPeriod($overrides['collectLpPeriod'])
-                            ->setCollectObjectData($overrides['collectObjectData']);
+                        $routines->setCollectUserData($overrides['collectUserData'] ?? false)
+                            ->setCollectUDFData($overrides['collectUDFData'] ?? false)
+                            ->setCollectMemberData($overrides['collectMemberData'] ?? false)
+                            ->setCollectLpPeriod($overrides['collectLpPeriod'] ?? false)
+                            ->setCollectObjectData($overrides['collectObjectData'] ?? false);
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     global $DIC;
 
                     $DIC->logger()->root()->error($e->getMessage());
@@ -128,7 +130,6 @@ class Registration
         return false;
     }
 
-
     /**
      * @return array<string, ProviderModel>
      */
@@ -145,14 +146,19 @@ class Registration
             $provider->setName($row['name'])
                 ->setNamespace($row['namespace'])
                 ->setPath($row['path'])
-                ->setHasOverrides(($row['has_overrides'] == true));
+                ->setHasOverrides((int) $row['has_overrides'] === 1);
 
-            $overrides = json_decode($row['active_overrides'], true);
+            try {
+                $overrides = json_decode($row['active_overrides'], true, 512, JSON_THROW_ON_ERROR);
+            } catch (Throwable $e) {
+                $overrides = [];
+            }
+
             $routines = new RoutinesModel();
-            $routines->setCollectUserData($overrides['collectUserData'])
-                ->setCollectUDFData($overrides['collectUDFData'])
-                ->setCollectMemberData($overrides['collectMemberData'])
-                ->setCollectLpPeriod($overrides['collectLpPeriod']);
+            $routines->setCollectUserData($overrides['collectUserData'] ?? false)
+                ->setCollectUDFData($overrides['collectUDFData'] ?? false)
+                ->setCollectMemberData($overrides['collectMemberData'] ?? false)
+                ->setCollectLpPeriod($overrides['collectLpPeriod'] ?? false);
 
             $provider->setActiveOverrides($routines);
             $providers[$provider->getName()] = $provider;
@@ -170,30 +176,31 @@ class Registration
             $res = $DIC->database()->update(
                 self::DB_PROVIDER_REG,
                 [
-                    'path' => array('text', $provider->getPath()),
-                    'has_overrides' => array('integer', $provider->getHasOverrides()),
+                    'path' => [ilDBConstants::T_TEXT, $provider->getPath()],
+                    'has_overrides' => [ilDBConstants::T_INTEGER, $provider->getHasOverrides()],
+                    'updated_at' => [ilDBConstants::T_TIMESTAMP, date('Y-m-d H:i:s')],
                 ],
                 [
-                    'name' => array('text', $provider->getName()),
-                    'namespace' => array('text', $provider->getNamespace()),
+                    'name' => [ilDBConstants::T_TEXT, $provider->getName()],
+                    'namespace' => [ilDBConstants::T_TEXT, $provider->getNamespace()],
                 ]
             );
         } else {
             $res = $DIC->database()->insert(
                 self::DB_PROVIDER_REG,
-                array(
-                    'id' => array('integer', $DIC->database()->nextId(self::DB_PROVIDER_REG)),
-                    'name' => array('text', $provider->getName()),
-                    'namespace' => array('text', $provider->getNamespace()),
-                    'path' => array('text', $provider->getPath()),
-                    'has_overrides' => array('integer', $provider->getHasOverrides()),
-                    'active_overrides' => array('text', $provider->getActiveOverrides()),
-                    'created_at' => array('timestamp', date('Y-m-d H:i:s')),
-                )
+                [
+                    'id' => [ilDBConstants::T_INTEGER, $DIC->database()->nextId(self::DB_PROVIDER_REG)],
+                    'name' => [ilDBConstants::T_TEXT, $provider->getName()],
+                    'namespace' => [ilDBConstants::T_TEXT, $provider->getNamespace()],
+                    'path' => [ilDBConstants::T_TEXT, $provider->getPath()],
+                    'has_overrides' => [ilDBConstants::T_INTEGER, $provider->getHasOverrides()],
+                    'active_overrides' => [ilDBConstants::T_TEXT, $provider->getActiveOverrides()],
+                    'created_at' => [ilDBConstants::T_TIMESTAMP, date('Y-m-d H:i:s')],
+                ]
             );
         }
 
-        return ($res === false);
+        return $res > 0;
     }
 
     private function _delete(ProviderModel $provider): bool
@@ -201,10 +208,10 @@ class Registration
         global $DIC;
 
         $query = 'DELETE FROM ' . self::DB_PROVIDER_REG .
-            ' WHERE namespace = ' . $DIC->database()->quote($provider->getNamespace(), 'text') . ';';
+            ' WHERE namespace = ' . $DIC->database()->quote($provider->getNamespace(), ilDBConstants::T_TEXT) . ';';
 
         $res = $DIC->database()->manipulate($query);
 
-        return ($res === false);
+        return $res > 0;
     }
 }

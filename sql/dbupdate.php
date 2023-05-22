@@ -348,3 +348,11 @@ if ($ilDB->tableExists('lerq_provider_register') && $ilDB->tableColumnExists('le
     ]);
 }
 ?>
+<#9>
+<?php
+if ($ilDB->tableExists('lerq_provider_register') &&
+    $ilDB->tableColumnExists('lerq_provider_register', 'name') &&
+    $ilDB->tableColumnExists('lerq_provider_register', 'namespace')) {
+    $ilDB->addUniqueConstraint('lerq_provider_register', ['name', 'namespace'], 'c1');
+}
+?>

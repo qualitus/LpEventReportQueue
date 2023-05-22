@@ -440,7 +440,7 @@ class ilQueueInitializationJob extends AbstractJob
                     $queue->getProgressChanged(false),
                 ];
 
-                $quoted_values = array();
+                $quoted_values = [];
                 foreach ($types as $k => $t) {
                     $quoted_values[] = $DIC->database()->quote($values[$k], $t);
                 }

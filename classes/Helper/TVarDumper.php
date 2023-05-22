@@ -126,7 +126,7 @@ class TVarDumper
                     $spaces = str_repeat(' ', $level * 4);
                     self::$_output .= "$className#$id\n" . $spaces . '(';
                     foreach ($keys as $key) {
-                        $keyDisplay = strtr(trim($key), array("\0" => ':'));
+                        $keyDisplay = strtr(trim($key), ["\0" => ':']);
                         self::$_output .= "\n" . $spaces . "    [$keyDisplay] => ";
                         self::dumpInternal($members[$key], $level + 1);
                     }
