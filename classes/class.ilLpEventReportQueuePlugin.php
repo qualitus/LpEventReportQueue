@@ -28,7 +28,7 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
     public const PLUGIN_SETTINGS = "qu_crnhk_lerq";
     public const PLUGIN_NS = 'QU\LERQ';
 
-    private static ?ilLpEventReportQueuePlugin $instance = null;
+    private static ?self $instance = null;
     /** @var array<string, array<string, array<string, bool>>> */
     private static array $activePluginsCheckCache = [];
     /** @var array<string, array<string, array<string, ilPlugin>>> */

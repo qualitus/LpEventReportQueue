@@ -18,6 +18,7 @@
 
 namespace QU\LERQ\API\Service;
 
+use ilDBConstants;
 use ilDBInterface;
 use QU\LERQ\Collections\QueueCollection;
 use QU\LERQ\Model\MemberModel;
@@ -72,101 +73,103 @@ class Collector
         $order = '';
 
         /* Time based filter */
-        if ($this->filter->getCourseStart() !== false) {
+        if ($this->filter->getCourseStart() !== null) {
             if ($this->filter->getCourseStartDirection() === $this->filter::TIME_BEFORE) {
-                $where .= '' . $db->quoteIdentifier('course_start') . ' <= ' .
-                    $db->quote($this->filter->getCourseStart(), 'timestamp');
+                $where .= $db->quoteIdentifier('course_start') . ' <= ' .
+                    $db->quote($this->filter->getCourseStart(), ilDBConstants::T_INTEGER);
             } else {
-                $where .= '' . $db->quoteIdentifier('course_start') . ' >= ' .
-                    $db->quote($this->filter->getCourseStart(), 'timestamp');
+                $where .= $db->quoteIdentifier('course_start') . ' >= ' .
+                    $db->quote($this->filter->getCourseStart(), ilDBConstants::T_INTEGER);
             }
             $where .= ' AND ';
         }
-        if ($this->filter->getCourseEnd() !== false) {
+        if ($this->filter->getCourseEnd() !== null) {
             if ($this->filter->getCourseEndDirection() === $this->filter::TIME_AFTER) {
-                $where .= '' . $db->quoteIdentifier('course_end') . ' >= ' .
-                    $db->quote($this->filter->getCourseEnd(), 'timestamp');
+                $where .= $db->quoteIdentifier('course_end') . ' >= ' .
+                    $db->quote($this->filter->getCourseEnd(), ilDBConstants::T_INTEGER);
             } else {
-                $where .= '' . $db->quoteIdentifier('course_end') . ' <= ' .
-                    $db->quote($this->filter->getCourseEnd(), 'timestamp');
+                $where .= $db->quoteIdentifier('course_end') . ' <= ' .
+                    $db->quote($this->filter->getCourseEnd(), ilDBConstants::T_INTEGER);
             }
             $where .= ' AND ';
         }
-        if (!$this->filter->getEventHappenedStart() && !$this->filter->getEventHappenedEnd()) {
-            if ($this->filter->getEventHappened() !== false) {
+
+        if ($this->filter->getEventHappenedStart() === null && $this->filter->getEventHappenedEnd() === null) {
+            if ($this->filter->getEventHappened() !== null) {
                 if ($this->filter->getEventHappenedDirection() === $this->filter::TIME_BEFORE) {
-                    $where .= '' . $db->quoteIdentifier('timestamp') . ' <= ' .
-                        $db->quote($this->filter->getEventHappened(), 'timestamp');
+                    $where .= $db->quoteIdentifier('timestamp') . ' <= ' .
+                        $db->quote($this->filter->getEventHappened(), ilDBConstants::T_INTEGER);
                 } else {
-                    $where .= '' . $db->quoteIdentifier('timestamp') . ' >= ' .
-                        $db->quote($this->filter->getEventHappened(), 'timestamp');
+                    $where .= $db->quoteIdentifier('timestamp') . ' >= ' .
+                        $db->quote($this->filter->getEventHappened(), ilDBConstants::T_INTEGER);
                 }
                 $where .= ' AND ';
             }
         }
-        if($this->filter->getEventHappenedStart()) {
-            $where .= '' . $db->quoteIdentifier('timestamp') . ' <= ' .
-                $db->quote($this->filter->getEventHappenedStart(), 'timestamp') . ' AND ';
+        if ($this->filter->getEventHappenedStart() !== null) {
+            $where .= $db->quoteIdentifier('timestamp') . ' <= ' .
+                $db->quote($this->filter->getEventHappenedStart(), ilDBConstants::T_INTEGER) . ' AND ';
         }
-        if($this->filter->getEventHappenedEnd()) {
-            $where .= '' . $db->quoteIdentifier('timestamp') . ' >= ' .
-                $db->quote($this->filter->getEventHappenedEnd(), 'timestamp') . ' AND ';
+        if ($this->filter->getEventHappenedEnd() !== null) {
+            $where .= $db->quoteIdentifier('timestamp') . ' >= ' .
+                $db->quote($this->filter->getEventHappenedEnd(), ilDBConstants::T_INTEGER) . ' AND ';
         }
-        if ($this->filter->getProgressChanged() !== false) {
+
+        if ($this->filter->getProgressChanged() !== null) {
             if ($this->filter->getProgressChangedDirection() === $this->filter::TIME_BEFORE) {
-                $where .= '' . $db->quoteIdentifier('progress_changed') . ' <= ' .
-                    $db->quote($this->filter->getProgressChanged(), 'timestamp');
+                $where .= $db->quoteIdentifier('progress_changed') . ' <= ' .
+                    $db->quote($this->filter->getProgressChanged(), ilDBConstants::T_INTEGER);
             } else {
-                $where .= '' . $db->quoteIdentifier('progress_changed') . ' >= ' .
-                    $db->quote($this->filter->getProgressChanged(), 'timestamp');
+                $where .= $db->quoteIdentifier('progress_changed') . ' >= ' .
+                    $db->quote($this->filter->getProgressChanged(), ilDBConstants::T_INTEGER);
             }
             $where .= ' AND ';
         }
 
         /* Event related filter */
         if ($this->filter->getExcludedProgress()) {
-            $where .= '' . $db->quoteIdentifier('progress') . ' <> ' .
-                $db->quote($this->filter->getExcludedProgress(), 'text') . ' ';
+            $where .= $db->quoteIdentifier('progress') . ' <> ' .
+                $db->quote($this->filter->getExcludedProgress(), ilDBConstants::T_TEXT) . ' ';
             $where .= ' AND ';
         }
-        if ($this->filter->getProgress() !== '*') {
-            $where .= '' . $db->quoteIdentifier('progress') . ' = ' .
-                $db->quote($this->filter->getProgress(), 'text') . ' ';
+        if ($this->filter->getProgress() !== '*' && $this->filter->getProgress() !== '') {
+            $where .= $db->quoteIdentifier('progress') . ' = ' .
+                $db->quote($this->filter->getProgress(), ilDBConstants::T_TEXT) . ' ';
             $where .= ' AND ';
         }
-        if ($this->filter->getAssignment() !== '*') {
-            $where .= '' . $db->quoteIdentifier('assignment') . ' = ' .
-                $db->quote($this->filter->getAssignment(), 'text') . ' ';
+        if ($this->filter->getAssignment() !== '*' && $this->filter->getAssignment() !== '') {
+            $where .= $db->quoteIdentifier('assignment') . ' = ' .
+                $db->quote($this->filter->getAssignment(), ilDBConstants::T_TEXT) . ' ';
             $where .= ' AND ';
         }
 
         /* Event type filter */
-        if ($this->filter->getEventType() !== '*') {
-            $where .= '' . $db->quoteIdentifier('event_type') . ' = ' .
-                $db->quote($this->filter->getEventType(), 'text') . ' AND ';
+        if ($this->filter->getEventType() !== '*' && $this->filter->getEventType() !== '') {
+            $where .= $db->quoteIdentifier('event_type') . ' = ' .
+                $db->quote($this->filter->getEventType(), ilDBConstants::T_TEXT) . ' AND ';
         }
 
         /* simple filter */
-        if ($this->filter->getEvent() !== '*') {
-            $where .= '' . $db->quoteIdentifier('event') . ' = ' .
-                $db->quote($this->filter->getEvent(), 'text') . ' ';
+        if ($this->filter->getEvent() !== '*' && $this->filter->getEvent() !== '') {
+            $where .= $db->quoteIdentifier('event') . ' = ' .
+                $db->quote($this->filter->getEvent(), ilDBConstants::T_TEXT) . ' ';
             $where .= ' AND ';
         }
 
         /* Paging filter */
-        if ($this->filter->getPageStart() !== 0) {
+        if ($this->filter->getPageStart() > 0) {
             if ($this->filter->isNegativePager()) {
-                $where .= '' . $db->quoteIdentifier('id') . ' < ' .
-                    $db->quote($this->filter->getPageStart(), 'integer') . ' ';
+                $where .= $db->quoteIdentifier('id') . ' < ' .
+                    $db->quote($this->filter->getPageStart(), ilDBConstants::T_INTEGER) . ' ';
             } else {
-                $where .= '' . $db->quoteIdentifier('id') . ' > ' .
-                    $db->quote($this->filter->getPageStart(), 'integer') . ' ';
+                $where .= $db->quoteIdentifier('id') . ' > ' .
+                    $db->quote($this->filter->getPageStart(), ilDBConstants::T_INTEGER) . ' ';
             }
             $where .= ' AND ';
         }
 
         if ($this->filter->getPageLength() !== -1) {
-            $limit .= ' LIMIT ' . $db->quote($this->filter->getPageLength(), 'integer') . ' ';
+            $limit .= ' LIMIT ' . $this->filter->getPageLength() . ' ';
         }
 
         if ($this->filter->isNegativePager()) {
@@ -175,7 +178,7 @@ class Collector
             $order .= ' ORDER BY ' . $db->quoteIdentifier('id') . ' ASC ';
         }
 
-        if (strlen($where) > 0) {
+        if ($where !== '') {
             $where = ' WHERE ' . $where . ' TRUE ' . $order . $limit;
 
         } else {

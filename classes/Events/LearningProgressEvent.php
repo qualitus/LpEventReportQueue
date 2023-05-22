@@ -64,7 +64,7 @@ class LearningProgressEvent extends AbstractEvent
                     $ref_id,
                     $event->getUsrId()
                 );
-                if ($assignment != -1) {
+                if ($assignment !== -1) {
                     $data['assignment'] = $eventDataAggregator->getRoleTitleByRoleId($assignment);
                 }
             }

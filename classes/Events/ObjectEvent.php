@@ -69,7 +69,7 @@ class ObjectEvent extends AbstractEvent
                     $event->getUsrId(),
                     $a_event
                 );
-                if ($assignment != -1) {
+                if ($assignment !== -1) {
                     $data['assignment'] = $eventDataAggregator->getRoleTitleByRoleId($assignment);
                 }
             }

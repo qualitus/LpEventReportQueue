@@ -20,7 +20,7 @@ namespace QU\LERQ\Helper;
 
 class InitialQueueCollector
 {
-    private static ?InitialQueueCollector $instance = null;
+    private static ?self $instance = null;
 
     /** @var array<int, array{0: int, 1: null|string}> */
     private array $tree = [];
@@ -219,7 +219,7 @@ ORDER BY tr.child';
      *
      * The query is required to get the correct assignment data for: user <> learning object
      *
-     * @param array $field_list List of fields to get.
+     * @param list<string> $field_list List of fields to get.
      * @param int $ref_id Lowest Ref ID to start at.
      * @param bool $distinct Distinct the first field of field list.
      * @param array{0: int, 1: int}|array{} $page Database limit pagination. Array [<int>Start , <int>End]

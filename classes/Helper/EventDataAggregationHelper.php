@@ -34,6 +34,7 @@ class EventDataAggregationHelper
     public function __construct()
     {
         global $DIC;
+
         $this->logger = $DIC->logger()->root();
     }
 
@@ -139,7 +140,6 @@ class EventDataAggregationHelper
 
         $this->logger->debug('no lp_status data found');
         return 0;
-
     }
 
     /**
