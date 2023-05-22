@@ -201,7 +201,7 @@ class SettingsModel
     {
         $query = 'UPDATE `' . $this->use_table . '` SET ';
         $query .= implode(' = %s,', $fields) . ' = %s ';
-        $query .= 'WHERE ' . $this->use_index . ' = ' . $this->database->quote($whereIndex, 'text') . ';';
+        $query .= 'WHERE ' . $this->use_index . ' = ' . $this->database->quote($whereIndex, ilDBConstants::T_TEXT) . ';';
 
         $affected_rows = $this->database->manipulateF(
             $query,
@@ -215,7 +215,7 @@ class SettingsModel
     private function _delete(string $whereIndex): bool
     {
         $query = 'DELETE FROM `' . $this->use_table . '` WHERE ' . $this->use_index . ' = ' .
-            $this->database->quote($whereIndex, 'text') . ';';
+            $this->database->quote($whereIndex, ilDBConstants::T_TEXT) . ';';
 
         $affected_rows = $this->database->manipulate($query);
 

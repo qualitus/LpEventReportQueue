@@ -51,7 +51,7 @@ class SettingsItemModel
     /**
      * @param mixed|null $value
      */
-    public function setValue($value): SettingsItemModel
+    public function setValue($value): self
     {
         $this->value = $value;
         return $this;
