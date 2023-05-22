@@ -139,9 +139,7 @@ class ProviderTable extends Base
         $modal = $this->uiServices->factory()
             ->modal()
             ->lightbox([$this->uiServices->factory()->modal()->lightboxTextPage(
-                implode('', array_map(static function (string $value): string {
-                    return (new JsonDocumentFormatter())->format($value);
-                }, array_filter([
+                implode('', array_map(static fn (string $value): string => (new JsonDocumentFormatter())->format($value), array_filter([
                     $row['active_overrides'],
                 ]))),
                 'JSON'

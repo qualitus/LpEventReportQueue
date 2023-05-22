@@ -23,30 +23,24 @@ use DateTimeZone;
 
 class QueueModel
 {
-    /** @var int */
-    private $id;
+    private ?int $id = null;
     /** @var string|int|null */
     private $timestamp;
     /** @var string („progress_changed“, „progress_reset“, etc.) */
-    private $event;
+    private ?string $event = null;
     /** @var string ("lp_event", "member_event", "object_event") */
-    private $event_type;
-    /** @var string */
-    private $progress;
+    private ?string $event_type = null;
+    private ?string $progress = null;
     /** @var string|int|null */
     private $progress_changed;
-    /** @var string */
-    private $assignment;
+    private ?string $assignment = null;
     /** @var string|int|null */
     private $course_start;
     /** @var string|int|null */
     private $course_end;
-    /** @var UserModel */
-    private $user_data;
-    /** @var ObjectModel */
-    private $obj_data;
-    /** @var MemberModel */
-    private $mem_data;
+    private ?\QU\LERQ\Model\UserModel $user_data = null;
+    private ?\QU\LERQ\Model\ObjectModel $obj_data = null;
+    private ?\QU\LERQ\Model\MemberModel $mem_data = null;
 
     public function getId(): int
     {

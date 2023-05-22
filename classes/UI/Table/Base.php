@@ -113,9 +113,7 @@ abstract class Base extends ilTable2GUI
      */
     public function getSelectableColumns(): array
     {
-        $optionalColumns = array_filter($this->getColumnDefinition(), static function (array $column): bool {
-            return isset($column['optional']) && $column['optional'];
-        });
+        $optionalColumns = array_filter($this->getColumnDefinition(), static fn (array $column): bool => isset($column['optional']) && $column['optional']);
 
         $columns = [];
         foreach ($optionalColumns as $index => $column) {

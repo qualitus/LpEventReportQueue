@@ -20,24 +20,15 @@ namespace QU\LERQ\Model;
 
 class ObjectModel
 {
-    /** @var string */
-    private $title;
-    /** @var int */
-    private $id;
-    /** @var int */
-    private $ref_id;
-    /** @var string */
-    private $link;
-    /** @var string */
-    private $type;
-    /** @var string */
-    private $type_hr;
-    /** @var string */
-    private $course_title;
-    /** @var int */
-    private $course_id;
-    /** @var int */
-    private $course_ref_id;
+    private ?string $title = null;
+    private ?int $id = null;
+    private ?int $ref_id = null;
+    private ?string $link = null;
+    private ?string $type = null;
+    private ?string $type_hr = null;
+    private ?string $course_title = null;
+    private ?int $course_id = null;
+    private ?int $course_ref_id = null;
 
     public function getTitle(): string
     {

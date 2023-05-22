@@ -20,14 +20,10 @@ namespace QU\LERQ\Model;
 
 class MemberModel
 {
-    /** @var string */
-    private $member_role;
-    /** @var string */
-    private $course_title;
-    /** @var int */
-    private $course_id;
-    /** @var int */
-    private $course_ref_id;
+    private ?string $member_role = null;
+    private ?string $course_title = null;
+    private ?int $course_id = null;
+    private ?int $course_ref_id = null;
 
     public function getMemberRole(): string
     {

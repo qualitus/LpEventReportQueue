@@ -94,13 +94,10 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
         require_once __DIR__ . '/../vendor/autoload.php';
 
         if (!isset($this->dic['autoload.lc.lcautoloader'])) {
-            require_once realpath(__DIR__) . '/Autoload/LCAutoloader.php';
             $Autoloader = new LCAutoloader();
             $Autoloader->register();
             $Autoloader->addNamespace('ILIAS\Plugin', '/Customizing/global/plugins');
-            $this->dic['autoload.lc.lcautoloader'] = static function (\ILIAS\DI\Container $c) use ($Autoloader): LCAutoloader {
-                return $Autoloader;
-            };
+            $this->dic['autoload.lc.lcautoloader'] = static fn (\ILIAS\DI\Container $c): LCAutoloader => $Autoloader;
         }
 
         $this->dic['autoload.lc.lcautoloader']->addNamespace(self::PLUGIN_NS, realpath(__DIR__));

@@ -20,26 +20,16 @@ namespace QU\LERQ\Model;
 
 class EventModel
 {
-    /** @var int */
-    private $obj_id;
-    /** @var int */
-    private $ref_id;
-    /** @var int */
-    private $parent_ref_id;
-    /** @var string */
-    private $obj_type;
-    /** @var int */
-    private $usr_id;
-    /** @var int */
-    private $role_id;
-    /** @var array */
-    private $appointments;
-    /** @var string */
-    private $lp_status;
-    /** @var int */
-    private $lp_percentage;
-    /** @var string */
-    private $event_name;
+    private ?int $obj_id = null;
+    private ?int $ref_id = null;
+    private ?int $parent_ref_id = null;
+    private ?string $obj_type = null;
+    private ?int $usr_id = null;
+    private ?int $role_id = null;
+    private ?array $appointments = null;
+    private ?string $lp_status = null;
+    private ?int $lp_percentage = null;
+    private ?string $event_name = null;
 
     public function getObjId(): int
     {

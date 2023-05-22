@@ -20,60 +20,33 @@ namespace QU\LERQ\Model;
 
 class UserModel
 {
-    /** @var int */
-    private $usr_id;
-    /** @var string */
-    private $login;
-    /** @var string */
-    private $firstname;
-    /** @var string */
-    private $lastname;
-    /** @var string */
-    private $title;
-    /** @var string */
-    private $gender;
-    /** @var string */
-    private $email;
-    /** @var string */
-    private $institution;
-    /** @var string */
-    private $street;
-    /** @var string */
-    private $city;
-    /** @var string */
-    private $country;
-    /** @var string */
-    private $phone_office;
-    /** @var string */
-    private $hobby;
-    /** @var string */
-    private $department;
-    /** @var string */
-    private $phone_home;
-    /** @var string */
-    private $phone_mobile;
-    /** @var string */
-    private $fax;
-    /** @var string */
-    private $referral_comment;
-    /** @var string */
-    private $matriculation;
-    /** @var int */
-    private $active;
-    /** @var string */
-    private $approval_date;
-    /** @var string */
-    private $agree_date;
-    /** @var string */
-    private $auth_mode;
-    /** @var string */
-    private $ext_account;
-    /** @var string */
-    private $birthday;
-    /** @var array */
-    private $udf_data;
-    /** @var string */
-    private $import_id;
+    private ?int $usr_id = null;
+    private ?string $login = null;
+    private ?string $firstname = null;
+    private ?string $lastname = null;
+    private ?string $title = null;
+    private ?string $gender = null;
+    private ?string $email = null;
+    private ?string $institution = null;
+    private ?string $street = null;
+    private ?string $city = null;
+    private ?string $country = null;
+    private ?string $phone_office = null;
+    private ?string $hobby = null;
+    private ?string $department = null;
+    private ?string $phone_home = null;
+    private ?string $phone_mobile = null;
+    private ?string $fax = null;
+    private ?string $referral_comment = null;
+    private ?string $matriculation = null;
+    private ?int $active = null;
+    private ?string $approval_date = null;
+    private ?string $agree_date = null;
+    private ?string $auth_mode = null;
+    private ?string $ext_account = null;
+    private ?string $birthday = null;
+    private ?array $udf_data = null;
+    private ?string $import_id = null;
 
     public function getUsrId(): int
     {
