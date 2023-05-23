@@ -111,7 +111,7 @@ class Routines implements DataCaptureRoutinesInterface
     {
         $data = [];
 
-        if (($event->getObjId() !== -1 || $event->getRefId() !== -1) && $event->getUsrId() !== -1) {
+        if ($event->getUsrId() !== -1 && ($event->getObjId() !== -1 || $event->getRefId() !== -1)) {
             /** @var ilObject $ilObj */
             if ($event->getRefId() !== -1) {
                 $ilObj = ilObjectFactory::getInstanceByRefId($event->getRefId(), false);
@@ -128,9 +128,7 @@ class Routines implements DataCaptureRoutinesInterface
                 $crs_title = $ilObj->getTitle();
                 $crs_id = $ilObj->getId();
                 $crs_ref_id = $ilObj->getRefId();
-
             } else {
-
                 // check if any parent object is of type course
                 $parent = $this->findParentCourse($ilObj->getRefId());
                 if ($parent === 0) {
@@ -138,12 +136,11 @@ class Routines implements DataCaptureRoutinesInterface
                     $crs_id = null;
                     $crs_ref_id = null;
                 } else {
-                    $parentObj = new ilObject($parent, true);
+                    $parentObj = new ilObjCourse($parent, true);
                     $crs_title = $parentObj->getTitle();
                     $crs_id = $parentObj->getId();
                     $crs_ref_id = $parentObj->getRefId();
                 }
-
             }
 
             // bugfix mantis 6876
@@ -153,12 +150,12 @@ class Routines implements DataCaptureRoutinesInterface
                 // if crs_ref_id is not known, we try to get it
                 if ($crs_ref_id === null) {
                     $set = $this->findFirstParentCourseByObjId($ilObj->getId());
-                    if ($set['ref_id'] !== 0) {
+                    if ($set['ref_id'] > 0) {
                         // to get the correct role, we need the object ref_id
-                        $ilObj->setRefId((int) $set['ref_id']);
+                        $ilObj->setRefId($set['ref_id']);
 
-                        if ($set['course_ref_id'] !== 0) {
-                            $course = new ilObjCourse((int) $set['course_ref_id'], true);
+                        if ($set['course_ref_id'] > 0) {
+                            $course = new ilObjCourse($set['course_ref_id'], true);
                             $crs_title = $course->getTitle();
                             $crs_id = $course->getId();
                             $crs_ref_id = $course->getRefId();
@@ -208,8 +205,8 @@ class Routines implements DataCaptureRoutinesInterface
                 }
             }
 
+            /** @var null|ilObjCourse $ilObj */
             if ($course !== null) {
-                /** @var ilObjCourse $course */
                 $data['course_start'] = $course->getCourseStart();
                 $data['course_end'] = $course->getCourseEnd();
             }
@@ -238,7 +235,7 @@ class Routines implements DataCaptureRoutinesInterface
 
             $course_id = -1;
             if ($ilObj->getType() === 'crs') {
-                /** @var ilObject $ilObj */
+                /** @var ilObjCourse $ilObj */
                 $course_id = $ilObj->getRefId();
             } else {
                 $parent = $this->findParentCourse($ilObj->getRefId());
@@ -253,10 +250,10 @@ class Routines implements DataCaptureRoutinesInterface
             $ambiguous = '';
             if ($course_id === -1) {
                 $set = $this->findFirstParentCourseByObjId($event->getObjId(), $ilObj->getType() === 'crs');
-                if ($set['ref_id'] !== 0) {
+                if ($set['ref_id'] > 0) {
                     $ilObj->setRefId($set['ref_id']);
 
-                    if ($set['course_ref_id'] !== 0) {
+                    if ($set['course_ref_id'] > 0) {
                         $course_id = $set['course_ref_id'];
                     }
                 }
