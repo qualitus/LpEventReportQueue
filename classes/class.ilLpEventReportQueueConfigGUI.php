@@ -398,7 +398,7 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
         if ($form->checkInput()) {
             // save...
             /** @var \QU\LERQ\Model\SettingsItemModel $setting */
-            foreach ($settings->getAll() as $keyword => $setting) {
+            foreach (array_keys($settings->getAll()) as $keyword) {
                 if ($form->getInput($keyword)) {
                     $settings->__set($keyword, $form->getInput($keyword));
                 } else {
@@ -473,14 +473,12 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 
     private function getProtocolTable(): ProtocolTable
     {
-        $table = new ProtocolTable(
+        return new ProtocolTable(
             $this,
             $this->plugin,
             $this->uiServices,
             'showProtocol'
         );
-
-        return $table;
     }
 
     private function applyProtocolFilter(): void
