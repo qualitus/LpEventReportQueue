@@ -1,63 +1,72 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\Collections;
 
-/**
- * Class QueueCollection
- * @package QU\LERQ\Collections
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
-class QueueCollection implements \IteratorAggregate
+use IteratorAggregate;
+
+class QueueCollection implements IteratorAggregate
 {
-	/** @var array */
-	private $items;
-	/** @var CollectionIterator */
-	private $iterator;
+    /** @var array */
+    private array $items = [];
+    private ?CollectionIterator $iterator = null;
 
-	/**
-	 * @param array $items
-	 * @return $this|bool
-	 */
-	public function create(array $items)
-	{
-		if (!is_array($items)) {
-			return false;
-		}
+    /**
+     * @param array $items
+     * @return $this|bool
+     */
+    public function create(array $items)
+    {
+        if (!is_array($items)) {
+            return false;
+        }
 
-		$this->items = $items;
-		return $this;
-	}
+        $this->items = $items;
+        return $this;
+    }
 
-	/**
-	 * @return array
-	 */
-	public function getAllItems(): array
-	{
-		return $this->items;
-	}
+    /**
+     * @return array
+     */
+    public function getAllItems(): array
+    {
+        return $this->items;
+    }
 
-	/**
-	 * @return array
-	 */
-	public function getItemKeys(): array
-	{
-		$current = $this->getIterator()->current();
-		if (!is_array($current)) {
-			$current = [];
-		}
-		return array_keys($current);
-	}
+    /**
+     * @return list<string|int>
+     */
+    public function getItemKeys(): array
+    {
+        $current = $this->getIterator()->current();
+        if (!is_array($current)) {
+            $current = [];
+        }
 
-	/**
-	 * @param bool $getnew
-	 * @return CollectionIterator|\Traversable
-	 */
-	public function getIterator($getnew = false)
-	{
-		if (!isset($this->iterator) || $getnew === true) {
-			$this->iterator = new CollectionIterator($this->items);
-		}
-		return $this->iterator;
-	}
+        return array_keys($current);
+    }
+
+    public function getIterator(bool $getnew = false): CollectionIterator
+    {
+        if (!isset($this->iterator) || $getnew === true) {
+            $this->iterator = new CollectionIterator($this->items);
+        }
+
+        return $this->iterator;
+    }
 }

@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /**
  * This file is part of ILIAS, a powerful learning management system
@@ -14,8 +14,9 @@
  * https://www.ilias.de
  * https://github.com/ILIAS-eLearning
  *
- ********************************************************************
- */
+ *********************************************************************/
+
+declare(strict_types=1);
 
 namespace QU\LERQ\API;
 
@@ -23,16 +24,18 @@ use ILIAS\DI\UIServices;
 use ilLpEventReportQueueConfigGUI;
 use ilLpEventReportQueuePlugin;
 use QU\LERQ\API\Table\Formatter\JsonDocumentFormatter;
+use QU\LERQ\Model\RoutinesModel;
 use QU\LERQ\UI\Table\Base;
 
+/**
+ * @extends Base<array{"name": string, "path": string, "active_overrides": RoutinesModel, "has_overrides": bool}>
+ */
 class ProviderTable extends Base
 {
     /** @var array<int, array> */
-    private $cachedColumnDefinition = [];
-    /** @var ilLpEventReportQueuePlugin */
-    private $plugin;
-    /** @var UIServices */
-    private $uiServices;
+    private array $cachedColumnDefinition = [];
+    private ilLpEventReportQueuePlugin $plugin;
+    private UIServices $uiServices;
 
     public function __construct(
         ilLpEventReportQueueConfigGUI $ctrlInstance,
@@ -61,7 +64,7 @@ class ProviderTable extends Base
         );
     }
 
-    protected function getColumnDefinition() : array
+    protected function getColumnDefinition(): array
     {
         if ($this->cachedColumnDefinition !== []) {
             return $this->cachedColumnDefinition;
@@ -105,7 +108,7 @@ class ProviderTable extends Base
         return $this->cachedColumnDefinition;
     }
 
-    protected function formatCellValue(string $column, array $row) : string
+    protected function formatCellValue(string $column, array $row): string
     {
         if ('actions' === $column) {
             return $this->formatActionDropdown($column, $row);
@@ -116,7 +119,7 @@ class ProviderTable extends Base
                 'templates/default/images/icon_not_ok.svg',
                 $this->lng->txt('no')
             );
-            if ((bool) $row[$column]) {
+            if ($row[$column]) {
                 $status = $this->uiServices->factory()->symbol()->icon()->custom(
                     'templates/default/images/icon_ok.svg',
                     $this->lng->txt('yes')
@@ -129,16 +132,14 @@ class ProviderTable extends Base
         return parent::formatCellValue($column, $row);
     }
 
-    protected function formatActionDropdown(string $column, array $row) : string
+    protected function formatActionDropdown(string $column, array $row): string
     {
         $buttons = [];
 
         $modal = $this->uiServices->factory()
             ->modal()
             ->lightbox([$this->uiServices->factory()->modal()->lightboxTextPage(
-                implode('', array_map(static function (string $value) : string {
-                    return (new JsonDocumentFormatter())->format($value);
-                }, array_filter([
+                implode('', array_map(static fn (string $value): string => (new JsonDocumentFormatter())->format($value), array_filter([
                     $row['active_overrides'],
                 ]))),
                 'JSON'

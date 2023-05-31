@@ -1,114 +1,83 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\Model;
 
-/**
- * Class ProviderModel
- * @package QU\LERQ\Model
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
 class ProviderModel
 {
-	/** @var string */
-	private $name;
-	/** @var string */
-	private $namespace;
-	/** @var string */
-	private $path;
-	/** @var bool */
-	private $hasOverrides;
-	/** @var RoutinesModel */
-	private $activeOverrides;
+    private string $name = '';
+    private string $namespace = '';
+    private string $path = '';
+    private bool $hasOverrides = false;
+    private ?RoutinesModel $activeOverrides = null;
 
-	/**
-	 * @return string
-	 */
-	public function getName(): string
-	{
-		return $this->name;
-	}
+    public function getName(): string
+    {
+        return $this->name;
+    }
 
-	/**
-	 * @param string $name
-	 * @return ProviderModel
-	 */
-	public function setName(string $name): ProviderModel
-	{
-		$this->name = $name;
-		return $this;
-	}
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getNamespace(): string
-	{
-		return $this->namespace;
-	}
+    public function getNamespace(): string
+    {
+        return $this->namespace;
+    }
 
-	/**
-	 * @param string $namespace
-	 * @return ProviderModel
-	 */
-	public function setNamespace(string $namespace): ProviderModel
-	{
-		$this->namespace = $namespace;
-		return $this;
-	}
+    public function setNamespace(string $namespace): self
+    {
+        $this->namespace = $namespace;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getPath(): string
-	{
-		return $this->path;
-	}
+    public function getPath(): string
+    {
+        return $this->path;
+    }
 
-	/**
-	 * @param string $path
-	 * @return ProviderModel
-	 */
-	public function setPath(string $path): ProviderModel
-	{
-		$this->path = $path;
-		return $this;
-	}
+    public function setPath(string $path): self
+    {
+        $this->path = $path;
+        return $this;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function getHasOverrides(): bool
-	{
-		return (isset($this->hasOverrides) ? $this->hasOverrides : false);
-	}
+    public function getHasOverrides(): bool
+    {
+        return $this->hasOverrides;
+    }
 
-	/**
-	 * @param bool $hasOverrides
-	 * @return ProviderModel
-	 */
-	public function setHasOverrides(bool $hasOverrides): ProviderModel
-	{
-		$this->hasOverrides = $hasOverrides;
-		return $this;
-	}
+    public function setHasOverrides(bool $hasOverrides): self
+    {
+        $this->hasOverrides = $hasOverrides;
+        return $this;
+    }
 
-	/**
-	 * @return RoutinesModel
-	 */
-	public function getActiveOverrides(): RoutinesModel
-	{
-		return (isset($this->activeOverrides) ? $this->activeOverrides : new RoutinesModel());
-	}
+    public function getActiveOverrides(): RoutinesModel
+    {
+        return $this->activeOverrides ?? new RoutinesModel();
+    }
 
-	/**
-	 * @param RoutinesModel $activeOverrides
-	 * @return ProviderModel
-	 */
-	public function setActiveOverrides(RoutinesModel $activeOverrides): ProviderModel
-	{
-		$this->activeOverrides = $activeOverrides;
-		return $this;
-	}
-
+    public function setActiveOverrides(RoutinesModel $activeOverrides): self
+    {
+        $this->activeOverrides = $activeOverrides;
+        return $this;
+    }
 }

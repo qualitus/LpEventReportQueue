@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /**
  * This file is part of ILIAS, a powerful learning management system
@@ -14,8 +14,9 @@
  * https://www.ilias.de
  * https://github.com/ILIAS-eLearning
  *
- ********************************************************************
- */
+ *********************************************************************/
+
+declare(strict_types=1);
 
 namespace QU\LERQ\Queue\Protocol\Table\Formatter;
 
@@ -23,14 +24,14 @@ use QU\LERQ\UI\Table\Formatter;
 
 class JsonAttributeFormatter implements Formatter
 {
-    private $attribute;
+    private string $attribute;
 
     public function __construct(string $attribute)
     {
         $this->attribute = $attribute;
     }
 
-    public function format($value) : string
+    public function format($value): string
     {
         assert(is_string($value) || is_null($value), '$value is not a string and not null');
 
@@ -38,7 +39,7 @@ class JsonAttributeFormatter implements Formatter
             return '';
         }
 
-        $decoded = json_decode($value, true);
+        $decoded = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
         if (!isset($decoded[$this->attribute])) {
             return '';
         }

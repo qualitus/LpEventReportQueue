@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /**
  * This file is part of ILIAS, a powerful learning management system
@@ -14,8 +14,9 @@
  * https://www.ilias.de
  * https://github.com/ILIAS-eLearning
  *
- ********************************************************************
- */
+ *********************************************************************/
+
+declare(strict_types=1);
 
 namespace QU\LERQ\Queue\Protocol\Table\Formatter;
 
@@ -24,8 +25,8 @@ use QU\LERQ\UI\Table\Formatter;
 
 class EventTypeFormatter implements Formatter
 {
-    private $event_field;
-    private $event_type_field;
+    private string $event_field;
+    private string $event_type_field;
 
     public function __construct(string $event_field, string $event_type_field)
     {
@@ -33,7 +34,7 @@ class EventTypeFormatter implements Formatter
         $this->event_type_field = $event_type_field;
     }
 
-    public function format($value) : string
+    public function format($value): string
     {
         assert(is_array($value), '$value is not an array');
 

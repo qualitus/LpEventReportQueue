@@ -1,78 +1,79 @@
 <?php
 
 /**
- * Class LCAutoloader
- * @package LC\Autoload
- * @author Ralph Dittrich <dittrich.ralph@lupuscoding.de>
- * @license <http://creativecommons.org/licenses/by-sa/4.0/> Attribution-ShareAlike 4.0 International
- */
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
+
+if (class_exists(\LCAutoloader::class)) {
+    return;
+}
+
 class LCAutoloader
 {
-    /** @var array */
-    protected $prefixes = array();
+    /** @var array<string, list<string>> */
+    protected array $prefixes = [];
 
-    /**
-     * @return void
-     */
-    public function register()
+    public function register(): void
     {
-        spl_autoload_register(array($this, 'loadClass'));
+        spl_autoload_register(fn (string $class) => $this->loadClass($class));
     }
 
-    /**
-     * @param string $prefix
-     * @param string $base_dir
-     * @param bool $prepend
-     * @return void
-     */
-    public function addNamespace(string $prefix, string $base_dir, $prepend = false)
+    public function addNamespace(string $prefix, string $base_dir, bool $prepend = false): void
     {
         $prefix = trim($prefix, '\\') . '\\';
         $base_dir = rtrim($base_dir, DIRECTORY_SEPARATOR) . '/';
-        if (isset($this->prefixes[$prefix]) === false) {
-            $this->prefixes[$prefix] = array();
+        if (!isset($this->prefixes[$prefix])) {
+            $this->prefixes[$prefix] = [];
         }
-        if ($prepend === true) {
+        if ($prepend) {
             array_unshift($this->prefixes[$prefix], $base_dir);
         } else {
-            array_push($this->prefixes[$prefix], $base_dir);
+            $this->prefixes[$prefix][] = $base_dir;
         }
     }
 
-    /**
-     * @param string $file
-     * @return bool
-     */
     public function reqFile(string $file): bool
     {
         if (file_exists($file)) {
             require_once($file);
             return true;
         }
+
         return false;
     }
 
     /**
-     * @param string $prefix
-     * @param string $class
      * @return bool|string
      */
     public function loadMappedFile(string $prefix, string $class)
     {
-        if (isset($this->prefixes[$prefix]) === false) {
+        if (!isset($this->prefixes[$prefix])) {
             return false;
         }
+
         foreach ($this->prefixes[$prefix] as $base_dir) {
             $file = $base_dir . str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
             if ($this->reqFile($file)) {
                 return $file;
             }
         }
+
         return false;
     }
 
     /**
-     * @param string $class
      * @return bool|string
      */
     public function loadClass(string $class)
@@ -89,5 +90,4 @@ class LCAutoloader
         }
         return false;
     }
-
 }

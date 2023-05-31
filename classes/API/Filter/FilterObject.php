@@ -1,344 +1,222 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\API\Filter;
 
-/**
- * Class FilterObject
- * @package QU\LERQ\API\Filter
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
 class FilterObject // @todo check filter rules
 {
-	// <=
-	const TIME_BEFORE = 0;
-	// >=
-	const TIME_AFTER = 1;
+    public const TIME_BEFORE = 0;
+    public const TIME_AFTER = 1;
 
-	/** @var string */
-	private $course_start;
-	/** @var int */
-	private $course_start_direction;
-	/** @var string */
-	private $course_end;
-	/** @var int */
-	private $course_end_direction;
-	/** @var string */
-	private $progress;
-	/** @var int */
-	private $page_start;
-	/** @var int */
-	private $page_length;
-	/** @var string */
-	private $event_type;
-	/** @var string */
-	private $event_happened;
-	/** @var string */
-	private $event_happened_start;
-	/** @var string */
-	private $event_happened_end;
-	/** @var int */
-	private $event_happened_direction;
-	/** @var string */
-	private $assignment;
-	/** @var string */
-	private $event;
-	/** @var bool */
-	private $negative_pager;
-	/** @var string */
-	private $progress_changed;
-	/** @var int */
-	private $progress_changed_direction;
-	/** @var string */
-	private $excluded_progress;
+    private ?int $course_start = null;
+    private int $course_start_direction = self::TIME_AFTER;
+    private ?int $course_end = null;
+    private int $course_end_direction = self::TIME_BEFORE;
+    private string $progress = '*';
+    private ?int $page_start = null;
+    private ?int $page_length = null;
+    private ?int $event_happened_start = null;
+    private ?int $event_happened_end = null;
+    private ?int $event_happened = null;
+    private int $event_happened_direction = self::TIME_AFTER;
+    private ?int $progress_changed = null;
+    private int $progress_changed_direction = self::TIME_AFTER;
+    private string $assignment = '*';
+    private string $event = '*';
+    private string $event_type = '*';
+    private bool $negative_pager = false;
+    private string $excluded_progress = '';
 
-	public function __construct()
-	{
-		$this->excluded_progress = '';
-	}
+    public function getCourseStartDirection(): int
+    {
+        return $this->course_start_direction;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getCourseStartDirection(): int
-	{
-		return $this->course_start_direction;
-	}
+    public function getCourseStart(): ?int
+    {
+        return $this->course_start;
+    }
 
-	/**
-	 * @return string|bool
-	 */
-	public function getCourseStart()
-	{
-		return (isset($this->course_start) ? $this->course_start : false);
-	}
+    public function setCourseStart(int $course_start, int $before_after = self::TIME_AFTER): self
+    {
+        $this->course_start = $course_start;
+        $this->course_start_direction = $before_after;
+        return $this;
+    }
 
-	/**
-	 * @param string $course_start UTC Timestamp
-	 * @return FilterObject
-	 */
-	public function setCourseStart(string $course_start, int $before_after = self::TIME_AFTER): FilterObject
-	{
-		$this->course_start = $course_start;
-		$this->course_start_direction = $before_after;
-		return $this;
-	}
+    public function getCourseEndDirection(): int
+    {
+        return $this->course_end_direction;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getCourseEndDirection(): int
-	{
-		return $this->course_end_direction;
-	}
+    public function getCourseEnd(): ?int
+    {
+        return $this->course_end;
+    }
 
-	/**
-	 * @return string|bool
-	 */
-	public function getCourseEnd()
-	{
-		return (isset($this->course_end) ? $this->course_end : false);
-	}
+    public function setCourseEnd(int $course_end, int $before_after = self::TIME_BEFORE): self
+    {
+        $this->course_end = $course_end;
+        $this->course_end_direction = $before_after;
+        return $this;
+    }
 
-	/**
-	 * @param string $course_end UTC Timestamp
-	 * @return FilterObject
-	 */
-	public function setCourseEnd(string $course_end, int $before_after = self::TIME_BEFORE): FilterObject
-	{
-		$this->course_end = $course_end;
-		$this->course_end_direction = $before_after;
-		return $this;
-	}
+    public function getExcludedProgress(): string
+    {
+        return $this->excluded_progress;
+    }
 
-	public function getExcludedProgress() : string
-	{
-		return $this->excluded_progress;
-	}
+    public function setExcludedProgress(string $excluded_progress): self
+    {
+        $this->excluded_progress = $excluded_progress;
+        return $this;
+    }
 
-	public function setExcludedProgress(string $excluded_progress) : FilterObject
-	{
-		$this->excluded_progress = $excluded_progress;
+    public function getProgress(): string
+    {
+        return $this->progress;
+    }
 
-		return $this;
-	}
+    public function setProgress(string $progress): self
+    {
+        $this->progress = $progress;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getProgress(): string
-	{
-		return (isset($this->progress) ? $this->progress : '*');
-	}
+    public function getPageStart(): int
+    {
+        return $this->page_start ?? 0;
+    }
 
-	/**
-	 * @param string $process
-	 * @return FilterObject
-	 */
-	public function setProgress(string $progress): FilterObject
-	{
-		$this->progress = $progress;
-		return $this;
-	}
+    public function setPageStart(int $page_start): self
+    {
+        $this->page_start = $page_start;
+        return $this;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getPageStart(): int
-	{
-		return (isset($this->page_start) ? $this->page_start : 0);
-	}
+    public function getPageLength(): int
+    {
+        return $this->page_length ?? 500;
+    }
 
-	/**
-	 * @param int $page_start
-	 * @return FilterObject
-	 */
-	public function setPageStart(int $page_start): FilterObject
-	{
-		$this->page_start = $page_start;
-		return $this;
-	}
+    public function setPageLength(int $page_length): self
+    {
+        $this->page_length = $page_length;
+        return $this;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getPageLength(): int
-	{
-		return (isset($this->page_length) ? $this->page_length : 500);
-	}
+    public function getEventType(): string
+    {
+        return $this->event_type;
+    }
 
-	/**
-	 * @param int $page_length
-	 * @return FilterObject
-	 */
-	public function setPageLength(int $page_length): FilterObject
-	{
-		$this->page_length = $page_length;
-		return $this;
-	}
+    public function setEventType(string $event_type): self
+    {
+        $this->event_type = $event_type;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getEventType(): string
-	{
-		return (isset($this->event_type) ? $this->event_type : '*');
-	}
+    public function getEventHappenedDirection(): int
+    {
+        return $this->event_happened_direction;
+    }
 
-	/**
-	 * @param string $event_type
-	 * @return FilterObject
-	 */
-	public function setEventType(string $event_type): FilterObject
-	{
-		$this->event_type = $event_type;
-		return $this;
-	}
+    public function getEventHappened(): ?int
+    {
+        return $this->event_happened;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getEventHappenedDirection(): int
-	{
-		return $this->event_happened_direction;
-	}
+    public function setEventHappened(int $event_happened, int $before_after = self::TIME_AFTER): self
+    {
+        $this->event_happened = $event_happened;
+        $this->event_happened_direction = $before_after;
+        return $this;
+    }
 
-	/**
-	 * @return string|bool
-	 */
-	public function getEventHappened()
-	{
-		return (isset($this->event_happened) ? $this->event_happened : false);
-	}
+    public function getEventHappenedStart(): ?int
+    {
+        return $this->event_happened_start;
+    }
 
-	/**
-	 * @param string $event_happened  UTC Timestamp
-	 * @return FilterObject
-	 */
-	public function setEventHappened(string $event_happened, int $before_after = self::TIME_AFTER): FilterObject
-	{
-		$this->event_happened = $event_happened;
-		$this->event_happened_direction = $before_after;
-		return $this;
-	}
+    public function setEventHappenedStart(int $event_happened_start): self
+    {
+        $this->event_happened_start = $event_happened_start;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getEventHappenedStart(): string
-	{
-		return (isset($this->event_happened_start) ? $this->event_happened_start : false);
-	}
+    public function getEventHappenedEnd(): ?int
+    {
+        return $this->event_happened_end;
+    }
 
-	/**
-	 * @param string $event_happened_start
-	 * @return FilterObject
-	 */
-	public function setEventHappenedStart(string $event_happened_start): FilterObject
-	{
-		$this->event_happened_start = $event_happened_start;
-		return $this;
-	}
+    public function setEventHappenedEnd(int $event_happened_end): self
+    {
+        $this->event_happened_end = $event_happened_end;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getEventHappenedEnd(): string
-	{
-		return (isset($this->event_happened_end) ? $this->event_happened_end : false);
-	}
+    public function getAssignment(): string
+    {
+        return $this->assignment;
+    }
 
-	/**
-	 * @param string $event_happened_end
-	 * @return FilterObject
-	 */
-	public function setEventHappenedEnd(string $event_happened_end): FilterObject
-	{
-		$this->event_happened_end = $event_happened_end;
-		return $this;
-	}
+    public function setAssignment(string $assignment): self
+    {
+        $this->assignment = $assignment;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getAssignment(): string
-	{
-		return (isset($this->assignment) ? $this->assignment : '*');
-	}
+    public function getEvent(): string
+    {
+        return $this->event;
+    }
 
-	/**
-	 * @param string $assignment
-	 * @return FilterObject
-	 */
-	public function setAssignment(string $assignment): FilterObject
-	{
-		$this->assignment = $assignment;
-		return $this;
-	}
+    public function setEvent(string $event): self
+    {
+        $this->event = $event;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getEvent(): string
-	{
-		return (isset($this->event) ? $this->event : '*');
-	}
+    public function isNegativePager(): bool
+    {
+        return $this->negative_pager;
+    }
 
-	/**
-	 * @param string $event
-	 * @return FilterObject
-	 */
-	public function setEvent(string $event): FilterObject
-	{
-		$this->event = $event;
-		return $this;
-	}
+    public function setNegativePager(bool $negative_pager): self
+    {
+        $this->negative_pager = $negative_pager;
+        return $this;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function isNegativePager(): bool
-	{
-		return (isset($this->negative_pager) ? $this->negative_pager : false);
-	}
-
-	/**
-	 * @param bool $negative_pager
-	 * @return FilterObject
-	 */
-	public function setNegativePager(bool $negative_pager): FilterObject
-	{
-		$this->negative_pager = $negative_pager;
-		return $this;
-	}
-
-
-    /**
-     * @return int
-     */
     public function getProgressChangedDirection(): int
     {
         return $this->progress_changed_direction;
     }
 
-    /**
-     * @return string|bool
-     */
-    public function getProgressChanged()
+    public function getProgressChanged(): ?int
     {
-        return (isset($this->progress_changed) ? $this->progress_changed : false);
+        return $this->progress_changed;
     }
 
-    /**
-     * @param string $course_start UTC Timestamp
-     * @return FilterObject
-     */
-    public function setProgressChanged(string $progress_changed, int $before_after = self::TIME_AFTER): FilterObject
+    public function setProgressChanged(int $progress_changed, int $before_after = self::TIME_AFTER): self
     {
         $this->progress_changed = $progress_changed;
         $this->progress_changed_direction = $before_after;
         return $this;
     }
-
-
 }
