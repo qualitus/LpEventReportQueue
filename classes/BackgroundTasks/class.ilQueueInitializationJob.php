@@ -153,7 +153,7 @@ class ilQueueInitializationJob extends AbstractJob
                         'phone_mobile' => $ud['phone_mobile'],
                         'fax' => $ud['fax'],
                         'referral_comment' => $ud['referral_comment'],
-                        'matriculation' => $ud['matricualtion'],
+                        'matriculation' => $ud['matriculation'],
                         'active' => $ud['active'],
                         'approval_date' => $ud['approve_date'],
                         'agree_date' => $ud['agree_date'],
