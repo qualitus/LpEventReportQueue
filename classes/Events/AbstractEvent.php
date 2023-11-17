@@ -209,7 +209,7 @@ abstract class AbstractEvent implements EventInterface
             $this->_saveEventData($queue);
             return true;
         } catch (Exception $e) {
-            // @Todo Exception
+            $this->logger->root()->critical($e->getMessage());
             return false;
         }
     }
@@ -256,6 +256,21 @@ abstract class AbstractEvent implements EventInterface
 
     private function _saveEventData(QueueModel $queueModel): void
     {
+        if ($queueModel->getObjData()->getId() === -1) {
+            $this->logger->root()->critical(
+                'Detected obj_id -1 in queue model.' .
+                ($queueModel->getObjData()->getRefId() === -1) ? ' ref_id is -1 as well.' : ''
+            );
+            $this->logger->root()->logStack(\ilLogLevel::CRITICAL);
+            $this->logger->root()->dump($queueModel, \ilLogLevel::CRITICAL);
+            $this->logger->root()->dump($_SERVER, \ilLogLevel::CRITICAL);
+        } elseif ($queueModel->getObjData()->getRefId() === -1) {
+            $this->logger->root()->info('Detected ref_id -1 in queue model.');
+            $this->logger->root()->logStack(\ilLogLevel::INFO);
+            $this->logger->root()->dump($queueModel, \ilLogLevel::INFO);
+            $this->logger->root()->dump($_SERVER, \ilLogLevel::INFO);
+        }
+
         $insert = 'INSERT INTO `' . self::DB_TABLE . '` ';
         $insert .= '(`id`, `timestamp`, `event`, `event_type`, `progress`, `assignment`, ';
         $insert .= '`course_start`, `course_end`, `user_data`, `obj_data`, `mem_data`, `progress_changed`) ';
