@@ -259,7 +259,7 @@ abstract class AbstractEvent implements EventInterface
         if ($queueModel->getObjData()->getId() === -1) {
             $this->logger->root()->critical(
                 'Detected obj_id -1 in queue model.' .
-                ($queueModel->getObjData()->getRefId() === -1) ? ' ref_id is -1 as well.' : ''
+                (($queueModel->getObjData()->getRefId() === -1) ? ' ref_id is -1 as well.' : '')
             );
             $this->logger->root()->logStack(\ilLogLevel::CRITICAL);
             $this->logger->root()->dump($queueModel, \ilLogLevel::CRITICAL);
