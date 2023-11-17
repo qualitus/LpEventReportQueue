@@ -54,7 +54,7 @@ class ObjectModel
      */
     public function setId($id): self
     {
-        $this->id = $id;
+        $this->id = is_numeric($id) ? (int) $id : $id;
         return $this;
     }
 
@@ -68,7 +68,7 @@ class ObjectModel
      */
     public function setRefId($ref_id): self
     {
-        $this->ref_id = $ref_id;
+        $this->ref_id = is_numeric($ref_id) ? (int) $ref_id : $ref_id;
         return $this;
     }
 
@@ -138,7 +138,7 @@ class ObjectModel
      */
     public function setCourseId($course_id): self
     {
-        $this->course_id = $course_id;
+        $this->course_id = is_numeric($course_id) ? (int) $course_id : $course_id;
         return $this;
     }
 
@@ -152,7 +152,7 @@ class ObjectModel
      */
     public function setCourseRefId($course_ref_id): self
     {
-        $this->course_ref_id = $course_ref_id;
+        $this->course_ref_id = is_numeric($course_ref_id) ? (int) $course_ref_id : $course_ref_id;
         return $this;
     }
 
