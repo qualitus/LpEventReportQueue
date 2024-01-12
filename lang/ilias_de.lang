@@ -44,6 +44,14 @@ import_id#:#Import ID
 udf_fields#:#UDF Felder
 object_data#:#Objektauswahl
 obj_select#:#Objekte erfassen
+obj_select_type_learning_progress#:#Alle Objekte, wo explizite Lernfortschritte von Personen vorhanden sind
+obj_select_type_role_assignments#:#Jene Objekte, in deren Kontext Rollenzuweisungen von Personen vorliegen, unabhängig davon, ob ein Lernfortschritt vorhanden ist (im Zweifel dann implizit "Nicht Bearbeitet").
+obj_select_type_ref_id_determination#:#Festlegung der Referenz-ID
+obj_select_type_ref_id_determination_info#:#Bitte wählen Sie hier, wie die Referenz-ID für basierent auf der Objekt-ID abgeleitet werden soll.
+obj_select_type_ref_id_first#:#Niedrigste Referenz-ID
+obj_select_type_ref_id_all#:#Alle Referenz-IDs
+obj_select_type_ref_id_first_read#:#Erste Referenz-ID mit Lesezugriff der betroffenen Person
+obj_select_type_ref_id_all_read#:#Alle Referenz-IDs mit Lesezugriff der betroffenen Person
 obj_all#:#Alle Objekte
 obj_only_course#:#Nur Kurse
 saving_invoked#:#Speichern erfolgreich

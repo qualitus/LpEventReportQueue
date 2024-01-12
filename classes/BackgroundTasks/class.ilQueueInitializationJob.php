@@ -42,6 +42,8 @@ class ilQueueInitializationJob extends AbstractJob
 
     public function run(array $input, Observer $observer): IntegerValue
     {
+        global $DIC;
+
         // Get plugin object
         $plugin = ilLpEventReportQueuePlugin::getInstance();
 
@@ -86,8 +88,8 @@ class ilQueueInitializationJob extends AbstractJob
         $observer->notifyPercentage($this, 0);
 
         // Get object selection setting, collect usr data, count base data and update task
-        $type_select = $this->settingsModel->getItem('obj_select')->getValue();
-        $user_data = $collector->collectUserDataFromDB();
+        $type_select = $task_info['obj_select'] ?? 'role_assignments';
+        $ref_id_determination = $task_info['ref_id_determination'] ?? 'all';
         $found = $collector->countBaseDataFromDB($type_select);
         $this->updateTask([
             'lock' => true, // <- prevents multiple executions at the same time
@@ -101,94 +103,74 @@ class ilQueueInitializationJob extends AbstractJob
         $start = max($processed_count, 0);
         $stepcount = 2000;
 
+        // Read all user data
+        $user_data = $collector->collectUserDataFromDB($type_select);
+
+        /** @var array<int, string> $cached_roles_by_id */
+        $cached_role_titles_by_id = [];
+        /** @var <string, int> $cached_role_ids_by_crs_id */
+        $cached_role_ids_by_crs_id = [];
+        /** @var array<int, list<int>> $ref_ids_by_obj_id_cache */
+        $ref_ids_by_obj_id_cache = [];
+        $access = $DIC->access();
+        $ref_id_determination = 'first_read';
+
         // Process data (for each $stepcount amount of data)
         while (count($base_data = $collector->collectBaseDataFromDB($start, $stepcount, $type_select)) > 0) {
             foreach ($base_data as $bd) {
-                // check if current object is type course
-                if ($bd['type'] === 'crs') {
-                    $crs_ref_id = (int) $bd['ref_id'];
-                } else {
-                    // if not type course, try to find a parent course ref_id
-                    $crs_ref_id = $collector->findParentCourse((int) $bd['ref_id']);
-                }
-                if ($crs_ref_id == -1) {
-                    // if object is not a course and no parent course could be found, we use "fail data"
-                    $course_data = [
-                        'crs_start' => null,
-                        'crs_end' => null,
-                        'title' => '',
-                        'obj_id' => -1
+                $ref_ids = [];
+                if ($type_select === 'role_assignments' || $ref_id_determination === 'first') {
+                    $ref_ids = [
+                        (int) $bd['ref_id']
                     ];
-                } else {
-                    // if we've got a course ref_id, collect the course data
-                    $course_data = $collector->collectCourseDataByRefId($crs_ref_id);
                 }
 
-                // Prepare the data array, to write the "events"
-                $ud = $user_data[$bd['usr_id']];
-                $aggregated = [
-                    'progress' => $eventDataAggregator->getLpStatusRepresentation($bd['status']),
-                    'progress_changed' => $bd['status_changed'],
-                    'assignment' => $eventDataAggregator->getRoleTitleByRoleId((int) $bd['rol_id']),
-                    'lpperiod' => [
-                        'course_start' => new ilDate($course_data['crs_start'], IL_CAL_UNIX),
-                        'course_end' => new ilDate($course_data['crs_end'], IL_CAL_UNIX),
-                    ],
-                    'userdata' => [
-                        'user_id' => $ud['usr_id'],
-                        'username' => $ud['login'],
-                        'firstname' => $ud['firstname'],
-                        'lastname' => $ud['lastname'],
-                        'title' => $ud['title'],
-                        'gender' => $ud['gender'],
-                        'email' => $ud['email'],
-                        'institution' => $ud['institution'],
-                        'street' => $ud['street'],
-                        'city' => $ud['city'],
-                        'country' => $ud['country'],
-                        'phone_office' => $ud['phone_office'],
-                        'hobby' => $ud['hobby'],
-                        'department' => $ud['department'],
-                        'phone_home' => $ud['phone_home'],
-                        'phone_mobile' => $ud['phone_mobile'],
-                        'fax' => $ud['fax'],
-                        'referral_comment' => $ud['referral_comment'],
-                        'matriculation' => $ud['matriculation'],
-                        'active' => $ud['active'],
-                        'approval_date' => $ud['approve_date'],
-                        'agree_date' => $ud['agree_date'],
-                        'auth_mode' => $ud['auth_mode'],
-                        'ext_account' => $ud['ext_account'],
-                        'birthday' => $ud['birthday'],
-                        'import_id' => $ud['import_id'],
-                    ],
-                    'udfdata' => $ud['udfdata'],
-                    'objectdata' => [
-                        'title' => $bd['title'],
-                        'id' => $bd['obj_id'],
-                        'ref_id' => $bd['ref_id'],
-                        'link' => ilLink::_getStaticLink((int) $bd['ref_id'], $bd['type'] ?? ''),
-                        'type' => $bd['type'],
-                        'course_title' => $course_data['title'],
-                        'course_id' => $course_data['obj_id'],
-                        'course_ref_id' => $course_data['ref_id'],
-                    ],
-                    'memberdata' => [
-                        'role' => $bd['rol_id'],
-                        'course_title' => $course_data['title'],
-                        'course_id' => $course_data['obj_id'],
-                        'course_ref_id' => $course_data['ref_id'],
-                    ]
-                ];
+                if ($type_select === 'learning_progress' && $ref_id_determination !== 'first') {
+                    $ref_ids_by_obj_id_cache[(int) $bd['obj_id']] = $ref_ids_by_obj_id_cache[(int) $bd['obj_id']] ?? array_map(
+                        'intval',
+                        array_values(ilObject::_getAllReferences((int) $bd['obj_id']))
+                    );
 
-                // Save the "events"
-                if ($this->save($aggregated)) {
-                    $processed++;
+                    $first = true;
+                    $ref_ids = array_filter(
+                        $ref_ids_by_obj_id_cache[(int) $bd['obj_id']],
+                        static function (int $ref_id) use ($bd, &$first, $ref_id_determination, $access): bool {
+                            if ('all' === $ref_id_determination) {
+                                return true;
+                            }
+
+                            $has_access = $access->checkAccessOfUser((int) $bd['usr_id'], 'read', '', $ref_id);
+                            if (!$has_access) {
+                                return false;
+                            }
+
+                            if ('first_read' === $ref_id_determination && !$first) {
+                                return false;
+                            }
+
+                            $first = false;
+                            return true;
+                        }
+                    );
                 }
 
-                // Update task to know the last ref_id, if the script fails.
+                foreach ($ref_ids as $ref_id) {
+                    $this->persistEventData(
+                        $collector,
+                        $eventDataAggregator,
+                        $ref_id,
+                        $bd,
+                        $user_data[$bd['usr_id']] ?? [],
+                        $cached_role_ids_by_crs_id,
+                        $cached_role_titles_by_id
+                    );
+                }
+
+                ++$processed;
+
+                // Update task to know the last obj_id, if the script fails.
                 $this->updateTask([
-                    'last_item' => (int) $bd['ref_id'],
+                    'last_item' => $bd['obj_id'] . '_' . $bd['usr_id'],
                 ]);
             }
 
@@ -680,5 +662,119 @@ class ilQueueInitializationJob extends AbstractJob
         $exists = (bool) ((int) ($this->db->fetchAssoc($this->db->query($query))['cnt'] ?? 0));
 
         return !$exists;
+    }
+
+    private function persistEventData(
+        InitialQueueCollector $collector,
+        EventDataAggregationHelper $eventDataAggregator,
+        int $ref_id,
+        array $bd,
+        array $user_data,
+        array &$cached_role_ids_by_crs_id,
+        array &$cached_role_titles_by_id
+    ): void {
+        // check if current object is type course
+        if ($bd['type'] === 'crs') {
+            $crs_ref_id = $ref_id;
+        } else {
+            // if not type course, try to find a parent course ref_id
+            $crs_ref_id = $collector->findParentCourse($ref_id);
+        }
+
+        if ($crs_ref_id === -1) {
+            // if object is not a course and no parent course could be found, we use "fail data"
+            $course_data = [
+                'crs_start' => null,
+                'crs_end' => null,
+                'title' => '',
+                'obj_id' => -1,
+                'ref_id' => -1
+            ];
+        } else {
+            // if we've got a course ref_id, collect the course data
+            $course_data = $collector->collectCourseDataByRefId($crs_ref_id);
+        }
+
+        if ((int) $bd['rol_id'] === -1) {
+            if ($course_data['ref_id'] > 0 || $course_data['obj_id'] > 0) {
+                $crs_role_det_id = $course_data['ref_id'] > 0 ? (int) $course_data['ref_id'] : (int) $course_data['obj_id'];
+                $is_rerference = $course_data['ref_id'] > 0;
+                $cache_key = $crs_role_det_id . '_' . (int) $is_rerference;
+
+                if (!isset($cached_role_ids_by_crs_id[$cache_key])) {
+                    $cached_role_ids_by_crs_id[$cache_key] = (new \QU\LERQ\Queue\CaptureRoutines\Routines())->getRoleAssignmentByUserIdAndCourseId(
+                        (int) $bd['usr_id'],
+                        $crs_role_det_id,
+                        $is_rerference
+                    );
+                }
+
+                $bd['rol_id'] = $cached_role_ids_by_crs_id[$cache_key];
+            }
+        }
+
+        // Prepare the data array, to write the "events"
+        $ud = $user_data;
+        $aggregated = [
+            'progress' => $eventDataAggregator->getLpStatusRepresentation($bd['status']),
+            'progress_changed' => $bd['status_changed'],
+            'assignment' => '-',
+            'lpperiod' => [
+                'course_start' => new ilDate($course_data['crs_start'], IL_CAL_UNIX),
+                'course_end' => new ilDate($course_data['crs_end'], IL_CAL_UNIX),
+            ],
+            'userdata' => [
+                'user_id' => $ud['usr_id'],
+                'username' => $ud['login'],
+                'firstname' => $ud['firstname'],
+                'lastname' => $ud['lastname'],
+                'title' => $ud['title'],
+                'gender' => $ud['gender'],
+                'email' => $ud['email'],
+                'institution' => $ud['institution'],
+                'street' => $ud['street'],
+                'city' => $ud['city'],
+                'country' => $ud['country'],
+                'phone_office' => $ud['phone_office'],
+                'hobby' => $ud['hobby'],
+                'department' => $ud['department'],
+                'phone_home' => $ud['phone_home'],
+                'phone_mobile' => $ud['phone_mobile'],
+                'fax' => $ud['fax'],
+                'referral_comment' => $ud['referral_comment'],
+                'matriculation' => $ud['matriculation'],
+                'active' => $ud['active'],
+                'approval_date' => $ud['approve_date'],
+                'agree_date' => $ud['agree_date'],
+                'auth_mode' => $ud['auth_mode'],
+                'ext_account' => $ud['ext_account'],
+                'birthday' => $ud['birthday'],
+                'import_id' => $ud['import_id'],
+            ],
+            'udfdata' => $ud['udfdata'],
+            'objectdata' => [
+                'title' => $bd['title'],
+                'id' => $bd['obj_id'],
+                'ref_id' => $ref_id,
+                'link' => ilLink::_getStaticLink($ref_id, $bd['type'] ?? ''),
+                'type' => $bd['type'],
+                'course_title' => $course_data['title'],
+                'course_id' => $course_data['obj_id'],
+                'course_ref_id' => $course_data['ref_id'],
+            ],
+            'memberdata' => [
+                'role' => (int) $bd['rol_id'] !== -1 ? (int) $bd['rol_id'] : null,
+                'course_title' => $course_data['title'],
+                'course_id' => $course_data['obj_id'],
+                'course_ref_id' => $course_data['ref_id'],
+            ]
+        ];
+
+        if ((int) $bd['rol_id'] !== -1) {
+            $aggregated['assignment'] = $cached_role_titles_by_id[(int) $bd['rol_id']] ?? ($cached_role_titles_by_id[(int) $bd['rol_id']] = $eventDataAggregator->getRoleTitleByRoleId((int) $bd['rol_id']));
+        }
+
+        // Save the "events"
+        $this->save($aggregated);
     }
 }
