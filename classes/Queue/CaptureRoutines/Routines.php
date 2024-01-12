@@ -381,7 +381,7 @@ class Routines implements DataCaptureRoutinesInterface
      * Get role id of user and course relation
      * @return int -1 if no assignment can be found. Otherwise role_id
      */
-    protected function getRoleAssignmentByUserIdAndCourseId(
+    public function getRoleAssignmentByUserIdAndCourseId(
         int $user_id,
         int $course_id,
         bool $call_course_by_ref = false

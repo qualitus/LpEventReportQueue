@@ -39,22 +39,22 @@ class InitialQueueCollector
      * Collects the base data, required to capture all other relevant queue data.
      * @return list<array<string, mixed>>
      */
-    public function collectBaseDataFromDB(int $start = 0, int $end = 1000, string $only_type = '*'): array
+    public function collectBaseDataFromDB(int $start = 0, int $end = 1000, string $type = 'role_assignments'): array
     {
         global $DIC;
 
         $result = $DIC->database()->query($this->getBaseDataQuery([
-            'rua.usr_id',
-            'oref.ref_id',
+            $type === 'role_assignments' ? 'rua.usr_id' : 'ulm.usr_id',
+            $type === 'role_assignments' ? 'oref.ref_id' : 'MIN(oref.ref_id) ref_id',
             'oref.obj_id',
-            'rua.rol_id',
+            $type === 'role_assignments' ? 'rua.rol_id' : "-1 AS rol_id",
             'od.type',
             'ulm.status',
             'ulm.status_changed',
             'od.title',
             'cs.crs_start',
             'cs.crs_end'
-        ], 0, false, [$start, $end], ['oref.ref_id', 'ASC'], $only_type));
+        ], false, [$start, $end], ['oref.ref_id', 'ASC'], $type));
 
         return $DIC->database()->fetchAll($result);
     }
@@ -64,13 +64,13 @@ class InitialQueueCollector
      * Get the count of all rows, that could be collected by collectBaseDataFromDB
      * @see collectBaseDataFromDB
      */
-    public function countBaseDataFromDB(string $only_type = '*'): int
+    public function countBaseDataFromDB(string $type = 'role_assignments'): int
     {
         global $DIC;
 
         $result = $DIC->database()->query($this->getBaseDataQuery([
-            'COUNT(rua.usr_id) AS count'
-        ], 0, false, [], [], $only_type));
+            $type === 'role_assignments' ? 'COUNT(rua.usr_id) AS count' : 'COUNT(ulm.usr_id) AS count'
+        ], false, [], [], $type));
 
         return (int) ($DIC->database()->fetchAll($result)[0]['count'] ?? 0);
     }
@@ -82,11 +82,11 @@ class InitialQueueCollector
      * @see getBaseDataQuery
      * @see collectBaseDataFromDB
      */
-    public function collectUserDataFromDB(): array
+    public function collectUserDataFromDB(string $type = 'role_assignments'): array
     {
         global $DIC;
 
-        $user_id_subq = $this->getBaseDataQuery(['rua.usr_id'], 0, true);
+        $user_id_subq = $this->getBaseDataQuery([$type === 'role_assignments' ? 'rua.usr_id' : 'ulm.usr_id'], true, [], [], $type);
 
         $query = 'SELECT `ud`.`usr_id`
 	,`ud`.`login` ,`ud`.`firstname` ,`ud`.`lastname` ,`ud`.`title` ,`ud`.`gender` ,`ud`.`email` ,`ud`.`institution` 
@@ -220,47 +220,49 @@ ORDER BY tr.child';
      * The query is required to get the correct assignment data for: user <> learning object
      *
      * @param list<string> $field_list List of fields to get.
-     * @param int $ref_id Lowest Ref ID to start at.
      * @param bool $distinct Distinct the first field of field list.
      * @param array{0: int, 1: int}|array{} $page Database limit pagination. Array [<int>Start , <int>End]
      * @param array{0: string, 1: string}|array{} $order Query result order. Array [<string>Field , <string>Direction]
-     * @param string $only_type Specific object type to get. Default "*" is used top get all.
+     * @param string $type Specific object type to get. Default "*" is used top get all.
      * @return string
      */
     private function getBaseDataQuery(
         array $field_list,
-        int $ref_id = 0,
         bool $distinct = false,
         array $page = [],
         array $order = [],
-        string $only_type = '*'
+        string $type = 'role_assignments'
     ): string {
-        $query = 'SELECT ' . ($distinct ? 'DISTINCT ' : '') . implode(',', $field_list) . '
-FROM `object_reference` `oref` 
-LEFT JOIN `rbac_fa` `rfa` 
+        if ($type === 'role_assignments') {
+            $query = 'SELECT ' . ($distinct ? 'DISTINCT ' : '') . implode(',', $field_list) . '
+FROM `object_reference` `oref`
+INNER JOIN `tree` `tr` ON `tr`.`child` = `oref`.`ref_id` AND `tr`.`tree` = 1 
+INNER JOIN `rbac_fa` `rfa` 
     ON `rfa`.`parent` = `oref`.`ref_id` 
-LEFT JOIN `rbac_ua` `rua` 
-    ON `rua`.`rol_id` = `rfa`.`rol_id` 
-LEFT JOIN `object_data` `od` 
+    AND `rfa`.`assign` = "y" 
+INNER JOIN `rbac_ua` `rua` 
+    ON `rua`.`rol_id` = `rfa`.`rol_id`
+    AND `rua`.`usr_id` NOT IN(0, 13, 6)
+INNER JOIN `object_data` `od` 
     ON `od`.`obj_id` = `oref`.`obj_id` 
 LEFT JOIN `ut_lp_marks` `ulm` 
     ON `ulm`.`obj_id` = `oref`.`obj_id`
     AND `ulm`.`usr_id` = `rua`.`usr_id`
 LEFT JOIN `crs_settings` `cs`
     ON `od`.`obj_id` = `cs`.`obj_id`
-WHERE `rfa`.`assign` = "y" 
-    AND `rua`.`rol_id` IS NOT NULL 
-    ';
-        if ($only_type !== '*') {
-            $query .= 'AND `od`.`type` = "' . $only_type . '" ';
-        } else {
-            $query .= 'AND `od`.`type` NOT IN ("rolf", "role") ';
-        }
-        $query .= ' 
-    AND `oref`.`ref_id` >= ' . $ref_id . '
-    AND `rua`.`usr_id` != 6
-    AND `rua`.`usr_id` != 0
+WHERE `od`.`type` NOT IN ("rolf", "role")
     AND `oref`.`deleted` IS NULL';
+        } else {
+            $query = 'SELECT ' . ($distinct ? 'DISTINCT ' : '') . implode(',', $field_list) . '
+FROM `object_data` `od`
+INNER JOIN `object_reference` `oref` ON `oref`.`obj_id` = `od`.`obj_id` AND `oref`.`deleted` IS NULL
+INNER JOIN `tree` `tr` ON `tr`.`child` = `oref`.`ref_id` AND `tr`.`tree` = 1
+INNER JOIN `ut_lp_marks` `ulm`  ON `ulm`.`obj_id` = `oref`.`obj_id`
+INNER JOIN `usr_data` `ud` ON `ud`.`usr_id` = `ulm`.`usr_id`
+LEFT JOIN `crs_settings` `cs` ON `cs`.`obj_id` = `od`.`obj_id`
+GROUP BY `od`.`obj_id`';
+        }
+
         if (count($order) === 2) {
             $query .= '
             ORDER BY ' . $order[0] . ' ' . $order[1] . ' ';

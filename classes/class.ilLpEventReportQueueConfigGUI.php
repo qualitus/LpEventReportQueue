@@ -165,7 +165,7 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
             JSON_THROW_ON_ERROR
         );
 
-        if (!$this->wasInitializationStarted($task_info)) {
+        if (true || !$this->wasInitializationStarted($task_info)) {
             // initialization was NOT started yet
             $ne = new ilNonEditableValueGUI('', 'start_initialization_by_click_first');
             $ne->setValue($this->plugin->txt('start_initialization_by_click_first'));
@@ -174,6 +174,25 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
                 $this->plugin->txt('start_initialization')
             ));
             $form->addItem($ne);
+
+            $se = new ilFormSectionHeaderGUI();
+            $se->setTitle($this->plugin->txt('object_data'));
+            $form->addItem($se);
+
+            $os = new ilRadioGroupInputGUI($this->plugin->txt('obj_select'), 'obj_select');
+            $lpd = new ilRadioOption($this->plugin->txt('obj_select_type_learning_progress'), 'learning_progress');
+            $rid = new ilRadioGroupInputGUI($this->plugin->txt('obj_select_type_ref_id_determination'), 'ref_id_determination');
+            $rid->addOption(new ilRadioOption($this->plugin->txt('obj_select_type_ref_id_all'), 'all'));
+            $rid->addOption(new ilRadioOption($this->plugin->txt('obj_select_type_ref_id_all_read'), 'all_read'));
+            $rid->addOption(new ilRadioOption($this->plugin->txt('obj_select_type_ref_id_first'), 'first'));
+            $rid->addOption(new ilRadioOption($this->plugin->txt('obj_select_type_ref_id_first_read'), 'first_read'));
+            $rid->setValue('all');
+            $lpd->addSubItem($rid);
+            $rad = new ilRadioOption($this->plugin->txt('obj_select_type_role_assignments'), 'role_assignments');
+            $os->addOption($lpd);
+            $os->addOption($rad);
+            $os->setValue('learning_progress');
+            $form->addItem($os);
 
             $form->addCommandButton('startInitialization', $this->plugin->txt('start_initialization'));
 
@@ -421,6 +440,23 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
 
         $factory = $this->backgroundTasks->taskFactory();
         $taskManager = $this->backgroundTasks->taskManager();
+
+        $task_info = [
+            'lock' => false,
+            'state' => \QU\LERQ\BackgroundTasks\AbstractJobDefinition::JOB_STATE_INIT,
+            'found_items' => 0,
+            'processed_items' => 0,
+            'progress' => 0,
+            'started_ts' => time(),
+            'finished_ts' => null,
+            'last_item' => 0,
+            'obj_select' => $DIC->http()->wrapper()->post()->retrieve('obj_select', $DIC->refinery()->kindlyTo()->string()),
+            'ref_id_determination' => $DIC->http()->wrapper()->post()->retrieve(
+                'ref_id_determination',
+                $DIC->refinery()->byTrying([$DIC->refinery()->kindlyTo()->string(), $DIC->refinery()->always('all')])
+            ),
+        ];
+        $DIC->settings()->set('lerq_bgtask_init', json_encode($task_info, JSON_THROW_ON_ERROR));
 
         $bucket = new BasicBucket();
         $bucket->setUserId($DIC->user()->getId());

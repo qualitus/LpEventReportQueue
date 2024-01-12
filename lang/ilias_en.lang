@@ -44,6 +44,14 @@ import_id#:#Import ID
 udf_fields#:#UDF Fields
 object_data#:#Object data
 obj_select#:#Track objects
+obj_select_type_learning_progress#:#Based on Learning Progress
+obj_select_type_role_assignments#:#Based on Role Assignments
+obj_select_type_ref_id_determination#:#Determination of Reference IDs
+obj_select_type_ref_id_determination_info#:#Please how to determine the reference ids.
+obj_select_type_ref_id_first#:#First Reference ID
+obj_select_type_ref_id_all#:#All Reference IDs
+obj_select_type_ref_id_first_read#:#First Reference ID with Read Permission
+obj_select_type_ref_id_all_read#:#All Reference IDs with Read Permission
 obj_all#:#All objects
 obj_only_course#:#Only courses
 saving_invoked#:#Successful saved
