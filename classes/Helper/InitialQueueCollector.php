@@ -69,8 +69,8 @@ class InitialQueueCollector
         global $DIC;
 
         $result = $DIC->database()->query($this->getBaseDataQuery([
-            $type === 'role_assignments' ? 'COUNT(rua.usr_id) AS count' : 'COUNT(ulm.usr_id) AS count'
-        ], false, [], [], $type));
+            $type === 'role_assignments' ? 'COUNT(rua.usr_id) AS count' : 'COUNT(DISTINCT `od`.`obj_id`, `ulm`.`usr_id`) AS count'
+        ], false, [], [], $type, true));
 
         return (int) ($DIC->database()->fetchAll($result)[0]['count'] ?? 0);
     }
@@ -231,7 +231,8 @@ ORDER BY tr.child';
         bool $distinct = false,
         array $page = [],
         array $order = [],
-        string $type = 'role_assignments'
+        string $type = 'role_assignments',
+        bool $is_count = false
     ): string {
         if ($type === 'role_assignments') {
             $query = 'SELECT ' . ($distinct ? 'DISTINCT ' : '') . implode(',', $field_list) . '
@@ -259,8 +260,11 @@ INNER JOIN `object_reference` `oref` ON `oref`.`obj_id` = `od`.`obj_id` AND `ore
 INNER JOIN `tree` `tr` ON `tr`.`child` = `oref`.`ref_id` AND `tr`.`tree` = 1
 INNER JOIN `ut_lp_marks` `ulm`  ON `ulm`.`obj_id` = `oref`.`obj_id`
 INNER JOIN `usr_data` `ud` ON `ud`.`usr_id` = `ulm`.`usr_id`
-LEFT JOIN `crs_settings` `cs` ON `cs`.`obj_id` = `od`.`obj_id`
-GROUP BY `od`.`obj_id`';
+LEFT JOIN `crs_settings` `cs` ON `cs`.`obj_id` = `od`.`obj_id`';
+
+            if (!$is_count) {
+                $query .= ' GROUP BY `od`.`obj_id`, `ulm`.`usr_id`';
+            }
         }
 
         if (count($order) === 2) {

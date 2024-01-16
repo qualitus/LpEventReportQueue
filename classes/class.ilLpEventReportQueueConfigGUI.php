@@ -165,7 +165,7 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
             JSON_THROW_ON_ERROR
         );
 
-        if (true || !$this->wasInitializationStarted($task_info)) {
+        if (!$this->wasInitializationStarted($task_info)) {
             // initialization was NOT started yet
             $ne = new ilNonEditableValueGUI('', 'start_initialization_by_click_first');
             $ne->setValue($this->plugin->txt('start_initialization_by_click_first'));
