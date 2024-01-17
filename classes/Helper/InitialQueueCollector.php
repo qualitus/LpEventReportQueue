@@ -37,9 +37,9 @@ class InitialQueueCollector
     /**
      * Collect Base Data
      * Collects the base data, required to capture all other relevant queue data.
-     * @return list<array<string, mixed>>
+     * @return \Generator<array<string, mixed>>
      */
-    public function collectBaseDataFromDB(int $start = 0, int $end = 1000, string $type = 'role_assignments'): array
+    public function collectBaseDataFromDB(int $start = 0, int $end = 1000, string $type = 'role_assignments'): \Generator
     {
         global $DIC;
 
@@ -56,7 +56,9 @@ class InitialQueueCollector
             'cs.crs_end'
         ], false, [$start, $end], ['oref.ref_id', 'ASC'], $type));
 
-        return $DIC->database()->fetchAll($result);
+        while ($row = $DIC->database()->fetchAssoc($result)) {
+            yield $row;
+        }
     }
 
     /**

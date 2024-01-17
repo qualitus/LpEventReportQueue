@@ -112,34 +112,41 @@ class ilQueueInitializationJob extends AbstractJob
         $cached_role_ids_by_crs_id = [];
         /** @var array<int, list<int>> $ref_ids_by_obj_id_cache */
         $ref_ids_by_obj_id_cache = [];
+        /** @var array<int, int> $parent_crs_ref_id_by_ref_id_cache */
+        $parent_crs_ref_id_by_ref_id_cache = [];
+        /** @var array<int, array|null> $crs_data_by_ref_id_cache */
+        $crs_data_by_ref_id_cache = [];
         $access = $DIC->access();
         $ref_id_determination = 'first_read';
 
-        // Process data (for each $stepcount amount of data)
-        while (count($base_data = $collector->collectBaseDataFromDB($start, $stepcount, $type_select)) > 0) {
-            foreach ($base_data as $bd) {
+        while (true) {
+            $iterator = $collector->collectBaseDataFromDB($start, $stepcount, $type_select);
+            $has_records = false;
+            foreach ($iterator as $record) {
+                $has_records = true;
+
                 $ref_ids = [];
                 if ($type_select === 'role_assignments' || $ref_id_determination === 'first') {
                     $ref_ids = [
-                        (int) $bd['ref_id']
+                        (int) $record['ref_id']
                     ];
                 }
 
                 if ($type_select === 'learning_progress' && $ref_id_determination !== 'first') {
-                    $ref_ids_by_obj_id_cache[(int) $bd['obj_id']] = $ref_ids_by_obj_id_cache[(int) $bd['obj_id']] ?? array_map(
+                    $ref_ids_by_obj_id_cache[(int) $record['obj_id']] = $ref_ids_by_obj_id_cache[(int) $record['obj_id']] ?? array_map(
                         'intval',
-                        array_values(ilObject::_getAllReferences((int) $bd['obj_id']))
+                        array_values(ilObject::_getAllReferences((int) $record['obj_id']))
                     );
 
                     $first = true;
                     $ref_ids = array_filter(
-                        $ref_ids_by_obj_id_cache[(int) $bd['obj_id']],
-                        static function (int $ref_id) use ($bd, &$first, $ref_id_determination, $access): bool {
+                        $ref_ids_by_obj_id_cache[(int) $record['obj_id']],
+                        static function (int $ref_id) use ($record, &$first, $ref_id_determination, $access): bool {
                             if ('all' === $ref_id_determination) {
                                 return true;
                             }
 
-                            $has_access = $access->checkAccessOfUser((int) $bd['usr_id'], 'read', '', $ref_id);
+                            $has_access = $access->checkAccessOfUser((int) $record['usr_id'], 'read', '', $ref_id);
                             if (!$has_access) {
                                 return false;
                             }
@@ -159,10 +166,12 @@ class ilQueueInitializationJob extends AbstractJob
                         $collector,
                         $eventDataAggregator,
                         $ref_id,
-                        $bd,
-                        $user_data[$bd['usr_id']] ?? [],
+                        $record,
+                        $user_data[$record['usr_id']] ?? [],
                         $cached_role_ids_by_crs_id,
-                        $cached_role_titles_by_id
+                        $cached_role_titles_by_id,
+                        $parent_crs_ref_id_by_ref_id_cache,
+                        $crs_data_by_ref_id_cache
                     );
                 }
 
@@ -170,23 +179,27 @@ class ilQueueInitializationJob extends AbstractJob
 
                 // Update task to know the last obj_id, if the script fails.
                 $this->updateTask([
-                    'last_item' => $bd['obj_id'] . '_' . $bd['usr_id'],
+                    'last_item' => $record['obj_id'] . '_' . $record['usr_id'],
                 ]);
             }
 
-            // Tell the observer that the script is alive
-            $observer->heartbeat();
-            $start += $stepcount;
+            if ($has_records) {
+                // Tell the observer that the script is alive
+                $observer->heartbeat();
+                $start += $stepcount;
 
-            // After $stepcount of data, we update the task progress information
-            $this->updateTask([
-                'processed_items' => $processed_count + $processed,
-                'progress' => $this->measureProgress($found, $processed_count + $processed)
-            ]);
-            $this->logMessage(
-                'Initial Queue collection: ' . $this->measureProgress($found, $processed_count + $processed) . '%.',
-                'debug'
-            );
+                // After $stepcount of data, we update the task progress information
+                $this->updateTask([
+                    'processed_items' => $processed_count + $processed,
+                    'progress' => $this->measureProgress($found, $processed_count + $processed)
+                ]);
+                $this->logMessage(
+                    'Initial Queue collection: ' . $this->measureProgress($found, $processed_count + $processed) . '%.',
+                    'debug'
+                );
+            } else {
+                break;
+            }
         }
 
         // After we finished, log the amount of processed events.
@@ -671,14 +684,16 @@ class ilQueueInitializationJob extends AbstractJob
         array $bd,
         array $user_data,
         array &$cached_role_ids_by_crs_id,
-        array &$cached_role_titles_by_id
+        array &$cached_role_titles_by_id,
+        array &$parent_crs_ref_id_by_ref_id_cache,
+        array &$crs_data_by_ref_id_cache
     ): void {
         // check if current object is type course
         if ($bd['type'] === 'crs') {
             $crs_ref_id = $ref_id;
         } else {
             // if not type course, try to find a parent course ref_id
-            $crs_ref_id = $collector->findParentCourse($ref_id);
+            $crs_ref_id = $parent_crs_ref_id_by_ref_id_cache[$ref_id] ?? ($parent_crs_ref_id_by_ref_id_cache[$ref_id] = $collector->findParentCourse($ref_id));
         }
 
         if ($crs_ref_id === -1) {
@@ -692,7 +707,7 @@ class ilQueueInitializationJob extends AbstractJob
             ];
         } else {
             // if we've got a course ref_id, collect the course data
-            $course_data = $collector->collectCourseDataByRefId($crs_ref_id);
+            $course_data = $crs_data_by_ref_id_cache[$crs_ref_id] ?? ($crs_data_by_ref_id_cache[$crs_ref_id] = $collector->collectCourseDataByRefId($crs_ref_id));
         }
 
         if ((int) $bd['rol_id'] === -1) {
