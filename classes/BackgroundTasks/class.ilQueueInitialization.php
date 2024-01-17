@@ -62,17 +62,16 @@ class ilQueueInitialization extends AbstractUserInteraction
         $logger = $DIC->logger()->root();
 
         $logger->debug('User interaction queue initialization State: ' . $bucket->getState());
-        if ($user_selected_option->getValue() != self::OPTION_START) {
+        if ($user_selected_option->getValue() !== self::OPTION_START) {
             $logger->info(
                 'User interaction queue initialization canceled by user with id: ' . $DIC->user()->getId()
             );
-            return $input;
+        } else {
+            $logger->info(
+                'User interaction queue initialization finished by user with id: ' . $DIC->user()->getId()
+            );
         }
 
-        $logger->info(
-            'User interaction queue initialization started by user with id: ' . $DIC->user()->getId()
-        );
-
-        return $input;
+        return $input[0];
     }
 }
