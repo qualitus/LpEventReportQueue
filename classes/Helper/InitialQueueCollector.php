@@ -22,8 +22,8 @@ class InitialQueueCollector
 {
     private static ?self $instance = null;
 
-    /** @var array<int, array{0: int, 1: null|string}> */
-    private array $tree = [];
+    /** @var null|array<int, array{0: int, 1: null|string}> */
+    private ?array $tree = null;
 
     public static function singleton(): self
     {
@@ -147,28 +147,21 @@ ORDER BY udf.usr_id';
     {
         global $DIC;
 
-        if (empty($this->tree)) {
-            $query = 'SELECT child, parent, `type`
-FROM tree tr
-LEFT JOIN object_reference obr
-	ON tr.parent = obr.ref_id
-LEFT JOIN object_data obd
-	ON obr.obj_id = obd.obj_id
-
-WHERE tr.depth > 1
-AND tr.tree = 1
-AND obd.type NOT IN (
-	"usrf", "rolf", "adm", "objf", "lngf", "mail", "recf", "cals", "trac", 
-	"auth", "assf", "stys", "seas", "extt", "adve", "ps", "nwss", "pdts", 
-	"mds", "cmps", "facs", "svyf", "mcts", "tags", "cert", "lrss", "accs",
-	"mobs", "file", "qpl", "root", "typ", "usr"
+        if ($this->tree === null) {
+            $query = 'SELECT tr_child.child, tr_child.parent, obd_parent.type
+FROM tree tr_child
+INNER JOIN object_reference obr_parent ON obr_parent.ref_id = tr_child.parent AND obr_parent.deleted IS NULL
+INNER JOIN object_data obd_parent ON obd_parent.obj_id = obr_parent.obj_id AND obd_parent.type IN (
+	"crs", "grp", "fold", "lso" -- We are only interested in container objects inside a course or parent course itself
 )
-
-ORDER BY tr.child';
+WHERE tr_child.depth > 1
+AND tr_child.tree = 1
+ORDER BY tr_child.child';
 
             $result = $DIC->database()->query($query);
+            $this->tree = [];
             while ($row = $DIC->database()->fetchAssoc($result)) {
-                $this->tree[(int) $row['child']] = [(int) $row['parent'], $row['type']];
+                $this->tree[(int) $row['child']] = [(int) $row['parent'], $row['type'] ?? null];
             }
         }
 
@@ -182,10 +175,10 @@ ORDER BY tr.child';
             return -1;
         }
 
-        if ($type !== 'crs') {
-            $crs_ref = $this->findParentCourse($parent);
-        } else {
+        if ($type === 'crs') {
             $crs_ref = $parent;
+        } else {
+            $crs_ref = $this->findParentCourse($parent);
         }
 
         return $crs_ref;
@@ -236,7 +229,14 @@ ORDER BY tr.child';
         string $type = 'role_assignments',
         bool $is_count = false
     ): string {
+        global $DIC;
+
         if ($type === 'role_assignments') {
+            $type_white_list = [];
+            foreach ($DIC['objDefinition']->getAllRepositoryTypes() as $obj_type) {
+                $type_white_list[] = $obj_type;
+            }
+
             $query = 'SELECT ' . ($distinct ? 'DISTINCT ' : '') . implode(',', $field_list) . '
 FROM `object_reference` `oref`
 INNER JOIN `tree` `tr` ON `tr`.`child` = `oref`.`ref_id` AND `tr`.`tree` = 1 
@@ -253,16 +253,24 @@ LEFT JOIN `ut_lp_marks` `ulm`
     AND `ulm`.`usr_id` = `rua`.`usr_id`
 LEFT JOIN `crs_settings` `cs`
     ON `od`.`obj_id` = `cs`.`obj_id`
-WHERE `od`.`type` NOT IN ("rolf", "role")
-    AND `oref`.`deleted` IS NULL';
+WHERE `oref`.`deleted` IS NULL
+AND ' . $DIC->database()->in('od.type', $type_white_list, false, \ilDBConstants::T_TEXT);
         } else {
+            $type_white_list = [];
+            foreach ($DIC['objDefinition']->getAllRepositoryTypes() as $obj_type) {
+                if (\ilObjectLP::isSupportedObjectType($obj_type)) {
+                    $type_white_list[] = $obj_type;
+                }
+            }
+
             $query = 'SELECT ' . ($distinct ? 'DISTINCT ' : '') . implode(',', $field_list) . '
 FROM `object_data` `od`
 INNER JOIN `object_reference` `oref` ON `oref`.`obj_id` = `od`.`obj_id` AND `oref`.`deleted` IS NULL
 INNER JOIN `tree` `tr` ON `tr`.`child` = `oref`.`ref_id` AND `tr`.`tree` = 1
 INNER JOIN `ut_lp_marks` `ulm`  ON `ulm`.`obj_id` = `oref`.`obj_id`
 INNER JOIN `usr_data` `ud` ON `ud`.`usr_id` = `ulm`.`usr_id`
-LEFT JOIN `crs_settings` `cs` ON `cs`.`obj_id` = `od`.`obj_id`';
+LEFT JOIN `crs_settings` `cs` ON `cs`.`obj_id` = `od`.`obj_id`
+WHERE ' . $DIC->database()->in('od.type', $type_white_list, false, \ilDBConstants::T_TEXT);
 
             if (!$is_count) {
                 $query .= ' GROUP BY `od`.`obj_id`, `ulm`.`usr_id`';
