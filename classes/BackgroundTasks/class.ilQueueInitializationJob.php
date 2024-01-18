@@ -83,6 +83,13 @@ class ilQueueInitializationJob extends AbstractJob
             return $output;
         }
 
+        $this->logMessage(
+            sprintf(
+                'Queue initialization started (Memory Usage: %s)',
+                ilUtil::formatSize(memory_get_usage(true), 'long')
+            )
+        );
+
         // Notify observer that the script is now running
         $observer->notifyState(State::RUNNING);
         $observer->notifyPercentage($this, 0);
@@ -91,6 +98,14 @@ class ilQueueInitializationJob extends AbstractJob
         $type_select = $task_info['obj_select'] ?? 'role_assignments';
         $ref_id_determination = $task_info['ref_id_determination'] ?? 'all';
         $found = $collector->countBaseDataFromDB($type_select);
+
+        $this->logMessage(
+            sprintf(
+                'Determined number of records to be processed (Memory Usage: %s)',
+                ilUtil::formatSize(memory_get_usage(true), 'long')
+            )
+        );
+
         $this->updateTask([
             'lock' => true, // <- prevents multiple executions at the same time
             'state' => $this->definitions::JOB_STATE_RUNNING,
@@ -105,6 +120,13 @@ class ilQueueInitializationJob extends AbstractJob
 
         // Read all user data
         $user_data = $collector->collectUserDataFromDB($type_select);
+
+        $this->logMessage(
+            sprintf(
+                'Collected user data (Memory Usage: %s)',
+                ilUtil::formatSize(memory_get_usage(true), 'long')
+            )
+        );
 
         /** @var array<int, string> $cached_roles_by_id */
         $cached_role_titles_by_id = [];
@@ -121,7 +143,16 @@ class ilQueueInitializationJob extends AbstractJob
 
         while (true) {
             $iterator = $collector->collectBaseDataFromDB($start, $stepcount, $type_select);
+            $this->logMessage(
+                sprintf(
+                    'Collected event data (Start: %s|Step: %s|Memory Usage: %s)',
+                    $start,
+                    $stepcount,
+                    ilUtil::formatSize(memory_get_usage(true), 'long')
+                )
+            );
             $has_records = false;
+            $i = 0;
             foreach ($iterator as $record) {
                 $has_records = true;
 
@@ -177,10 +208,31 @@ class ilQueueInitializationJob extends AbstractJob
 
                 ++$processed;
 
+                if ($i > 0 && $i % 100 === 0) {
+                    $this->logMessage(
+                        sprintf(
+                            '. (Memory Usage: %s)',
+                            ilUtil::formatSize(memory_get_usage(true), 'long')
+                        )
+                    );
+                }
+
                 // Update task to know the last obj_id, if the script fails.
                 $this->updateTask([
                     'last_item' => $record['obj_id'] . '_' . $record['usr_id'],
                 ]);
+
+                ++$i;
+
+                $this->logMessage(
+                    sprintf(
+                        'Determine cache sizes ($crs_data_by_ref_id_cache: %s|$cached_role_titles_by_id: %s|$parent_crs_ref_id_by_ref_id_cache: %s|$crs_data_by_ref_id_cache: %s)',
+                        count($cached_role_ids_by_crs_id),
+                        count($cached_role_titles_by_id),
+                        count($parent_crs_ref_id_by_ref_id_cache),
+                        count($crs_data_by_ref_id_cache),
+                    )
+                );
             }
 
             if ($has_records) {
@@ -221,6 +273,14 @@ class ilQueueInitializationJob extends AbstractJob
             'progress' => $this->measureProgress($found, $processed_count + $processed),
             'finished_ts' => time()
         ]);
+
+        $this->logMessage(
+            sprintf(
+                'Finished queue initialization (Memory Usage: %s|Peak Usage: %s)',
+                ilUtil::formatSize(memory_get_usage(true), 'long'),
+                ilUtil::formatSize(memory_get_peak_usage(true), 'long')
+            )
+        );
 
         // Set the Output value on "success" or "stopped" weather the progress is above 99% or not. The 99% is used
         // because of rounding difference, the progress could be something like: 99.7432%
@@ -330,7 +390,7 @@ class ilQueueInitializationJob extends AbstractJob
                         $user->setPhoneMobile($ud['phone_mobile']);
                     }
                     if ($this->settingsModel->getItem('fax')->getValue()) {
-                        $user->setFax($ud['phone_fax']);
+                        $user->setFax($ud['fax']);
                     }
                     if ($this->settingsModel->getItem('referral_comment')->getValue()) {
                         $user->setReferralComment($ud['referral_comment']);
