@@ -164,14 +164,14 @@ class ilQueueInitializationJob extends AbstractJob
                 }
 
                 if ($type_select === 'learning_progress' && $ref_id_determination !== 'first') {
-                    $ref_ids_by_obj_id_cache[(int) $record['obj_id']] = $ref_ids_by_obj_id_cache[(int) $record['obj_id']] ?? array_map(
+                    $ref_ids_by_obj_id = $ref_ids_by_obj_id_cache[(int) $record['obj_id']] ?? ($ref_ids_by_obj_id_cache[(int) $record['obj_id']] = array_map(
                         'intval',
                         array_values(ilObject::_getAllReferences((int) $record['obj_id']))
-                    );
+                    ));
 
                     $first = true;
                     $ref_ids = array_filter(
-                        $ref_ids_by_obj_id_cache[(int) $record['obj_id']],
+                        $ref_ids_by_obj_id,
                         static function (int $ref_id) use ($record, &$first, $ref_id_determination, $access): bool {
                             if ('all' === $ref_id_determination) {
                                 return true;
@@ -190,6 +190,8 @@ class ilQueueInitializationJob extends AbstractJob
                             return true;
                         }
                     );
+
+                    unset($ref_ids_by_obj_id);
                 }
 
                 foreach ($ref_ids as $ref_id) {
@@ -205,6 +207,8 @@ class ilQueueInitializationJob extends AbstractJob
                         $crs_data_by_ref_id_cache
                     );
                 }
+
+                unset($ref_ids);
 
                 ++$processed;
 
