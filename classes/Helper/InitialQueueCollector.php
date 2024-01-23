@@ -59,6 +59,8 @@ class InitialQueueCollector
         while ($row = $DIC->database()->fetchAssoc($result)) {
             yield $row;
         }
+
+        $DIC->database()->free($result);
     }
 
     /**
@@ -122,6 +124,7 @@ ORDER BY udf.usr_id';
                 $udf_row['value'] ?? ''
             );
         }
+        $DIC->database()->free($udf_res);
 
         $data = [];
         while ($row = $DIC->database()->fetchAssoc($result)) {
@@ -133,6 +136,7 @@ ORDER BY udf.usr_id';
 
             $data[(int) $row['usr_id']] = $row;
         }
+        $DIC->database()->free($result);
 
         return $data;
     }
@@ -163,6 +167,7 @@ ORDER BY tr_child.child';
             while ($row = $DIC->database()->fetchAssoc($result)) {
                 $this->tree[(int) $row['child']] = [(int) $row['parent'], $row['type'] ?? null];
             }
+            $DIC->database()->free($result);
         }
 
         if (!isset($this->tree[$ref_id])) {
@@ -205,6 +210,7 @@ ORDER BY tr_child.child';
 
         $result = $DIC->database()->query($query);
         $data = $DIC->database()->fetchAll($result);
+        $DIC->database()->free($result);
 
         return $data[0] ?? null;
     }

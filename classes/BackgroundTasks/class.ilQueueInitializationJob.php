@@ -235,6 +235,8 @@ class ilQueueInitializationJob extends AbstractJob
                 );
             }
 
+            unset($iterator);
+
             if ($has_records) {
                 // Tell the observer that the script is alive
                 $observer->heartbeat();
@@ -851,5 +853,7 @@ class ilQueueInitializationJob extends AbstractJob
 
         // Save the "events"
         $this->save($aggregated);
+
+        unset($aggregated);
     }
 }
