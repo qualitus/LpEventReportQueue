@@ -142,7 +142,15 @@ class QueueModel
     public function getProgressChanged(bool $iso = false)
     {
         if ($iso) {
-            return isset($this->progress_changed) ? date('c', $this->progress_changed) : '';
+            if (is_string($this->progress_changed)) {
+                return date('c', strtotime($this->progress_changed));
+            }
+
+            if (is_int($this->progress_changed)) {
+                return date('c', $this->progress_changed);
+            }
+
+            return '';
         }
 
         return $this->progress_changed ?? null;

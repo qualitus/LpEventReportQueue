@@ -404,6 +404,7 @@ class Routines implements DataCaptureRoutinesInterface
         $result = $DIC->database()->query($select_assignments);
         $assignments = $DIC->database()->fetchAll($result);
         $DIC->database()->free($result);
+        unset($result);
 
         if ($assignments !== [] && array_key_exists('rol_id', $assignments[0])) {
             return (int) $assignments[0]['rol_id'];
