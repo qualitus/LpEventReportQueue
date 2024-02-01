@@ -39,6 +39,7 @@ class ilQueueInitializationJob extends AbstractJob
     private ilDBInterface $db;
     private AssignmentCollector $collector;
     private ?SettingsModel $settingsModel = null;
+    private ?ilDBStatement $prepared_statement = null;
 
     public function run(array $input, Observer $observer): IntegerValue
     {
@@ -143,14 +144,21 @@ class ilQueueInitializationJob extends AbstractJob
 
         while (true) {
             $iterator = $collector->collectBaseDataFromDB($start, $stepcount, $type_select);
+
             $this->logMessage(
                 sprintf(
-                    'Collected event data (Start: %s|Step: %s|Memory Usage: %s)',
+                    'Collected event data (Start: %s|Step: %s|Memory Usage: %s)' .
+                    ' / Determine cache sizes ($crs_data_by_ref_id_cache: %s|$cached_role_titles_by_id: %s|$parent_crs_ref_id_by_ref_id_cache: %s|$crs_data_by_ref_id_cache: %s)',
                     $start,
                     $stepcount,
-                    ilUtil::formatSize(memory_get_usage(true), 'long')
+                    ilUtil::formatSize(memory_get_usage(true), 'long'),
+                    count($cached_role_ids_by_crs_id),
+                    count($cached_role_titles_by_id),
+                    count($parent_crs_ref_id_by_ref_id_cache),
+                    count($crs_data_by_ref_id_cache),
                 )
             );
+
             $has_records = false;
             $i = 0;
             foreach ($iterator as $record) {
@@ -164,14 +172,14 @@ class ilQueueInitializationJob extends AbstractJob
                 }
 
                 if ($type_select === 'learning_progress' && $ref_id_determination !== 'first') {
-                    $ref_ids_by_obj_id_cache[(int) $record['obj_id']] = $ref_ids_by_obj_id_cache[(int) $record['obj_id']] ?? array_map(
+                    $ref_ids_by_obj_id = $ref_ids_by_obj_id_cache[(int) $record['obj_id']] ?? ($ref_ids_by_obj_id_cache[(int) $record['obj_id']] = array_map(
                         'intval',
                         array_values(ilObject::_getAllReferences((int) $record['obj_id']))
-                    );
+                    ));
 
                     $first = true;
                     $ref_ids = array_filter(
-                        $ref_ids_by_obj_id_cache[(int) $record['obj_id']],
+                        $ref_ids_by_obj_id,
                         static function (int $ref_id) use ($record, &$first, $ref_id_determination, $access): bool {
                             if ('all' === $ref_id_determination) {
                                 return true;
@@ -190,6 +198,8 @@ class ilQueueInitializationJob extends AbstractJob
                             return true;
                         }
                     );
+
+                    unset($ref_ids_by_obj_id);
                 }
 
                 foreach ($ref_ids as $ref_id) {
@@ -205,6 +215,8 @@ class ilQueueInitializationJob extends AbstractJob
                         $crs_data_by_ref_id_cache
                     );
                 }
+
+                unset($ref_ids);
 
                 ++$processed;
 
@@ -223,17 +235,9 @@ class ilQueueInitializationJob extends AbstractJob
                 ]);
 
                 ++$i;
-
-                $this->logMessage(
-                    sprintf(
-                        'Determine cache sizes ($crs_data_by_ref_id_cache: %s|$cached_role_titles_by_id: %s|$parent_crs_ref_id_by_ref_id_cache: %s|$crs_data_by_ref_id_cache: %s)',
-                        count($cached_role_ids_by_crs_id),
-                        count($cached_role_titles_by_id),
-                        count($parent_crs_ref_id_by_ref_id_cache),
-                        count($crs_data_by_ref_id_cache),
-                    )
-                );
             }
+
+            unset($iterator);
 
             if ($has_records) {
                 // Tell the observer that the script is alive
@@ -255,7 +259,7 @@ class ilQueueInitializationJob extends AbstractJob
         }
 
         // After we finished, log the amount of processed events.
-        $this->logMessage('Processed ' . ($processed * 2) . ' events.');
+        $this->logMessage('Processed ' . $processed . ' events.');
 
         // Measure progress.
         $progress = $this->measureProgress($found, $processed_count + $processed);
@@ -286,6 +290,48 @@ class ilQueueInitializationJob extends AbstractJob
         // because of rounding difference, the progress could be something like: 99.7432%
         $output->setValue($progress > 99 ? $this->definitions::JOB_RETURN_SUCCESS : $this->definitions::JOB_RETURN_STOPPED);
         return $output;
+    }
+
+    private function getStatement(): ilDBStatement
+    {
+        global $DIC;
+
+        if ($this->prepared_statement !== null) {
+            return $this->prepared_statement;
+        }
+
+        return ($this->prepared_statement = $DIC->database()->prepareManip(
+            'INSERT INTO `' . AbstractEvent::DB_TABLE . '` 
+                (
+                    `id`,
+                    `timestamp`,
+                    `event`,
+                    `event_type`,
+                    `progress`,
+                    `assignment`, 
+                    `course_start`,
+                    `course_end`,
+                    `user_data`,
+                    `obj_data`,
+                    `mem_data`,
+                    `progress_changed`
+                ) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+            [
+                ilDBConstants::T_INTEGER,
+                ilDBConstants::T_INTEGER,
+                ilDBConstants::T_TEXT,
+                ilDBConstants::T_TEXT,
+                ilDBConstants::T_TEXT,
+                ilDBConstants::T_TEXT,
+                ilDBConstants::T_INTEGER,
+                ilDBConstants::T_INTEGER,
+                ilDBConstants::T_CLOB,
+                ilDBConstants::T_CLOB,
+                ilDBConstants::T_CLOB,
+                ilDBConstants::T_INTEGER
+            ]
+        ));
     }
 
     /**
@@ -457,57 +503,37 @@ class ilQueueInitializationJob extends AbstractJob
             $queue->setMemData($member);
 
             // Create query for both event types
-            $insert = '';
-            foreach (['addParticipant', 'updateStatus'] as $event) {
-                $insert .= 'INSERT INTO `' . AbstractEvent::DB_TABLE . '` 
-                (`id`, `timestamp`, `event`, `event_type`, `progress`, `assignment`, 
-                `course_start`, `course_end`, `user_data`, `obj_data`, `mem_data`, `progress_changed`) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); 
-                ';
-
-                $types = [
-                    ilDBConstants::T_INTEGER,
-                    ilDBConstants::T_INTEGER,
-                    ilDBConstants::T_TEXT,
-                    ilDBConstants::T_TEXT,
-                    ilDBConstants::T_TEXT,
-                    ilDBConstants::T_TEXT,
-                    ilDBConstants::T_INTEGER,
-                    ilDBConstants::T_INTEGER,
-                    ilDBConstants::T_TEXT,
-                    ilDBConstants::T_TEXT,
-                    ilDBConstants::T_TEXT,
-                    ilDBConstants::T_INTEGER,
-                ];
-
-                $values = [
-                    $DIC->database()->nextId(AbstractEvent::DB_TABLE),
-                    $queue->getTimestamp(false),
-                    $event,
-                    $this->mapEventToType($event),
-                    $queue->getProgress(),
-                    $queue->getAssignment(),
-                    $queue->getCourseStart(false),
-                    $queue->getCourseEnd(false),
-                    $queue->getUserData()->__toString(),
-                    $queue->getObjData()->__toString(),
-                    $queue->getMemData()->__toString(),
-                    $queue->getProgressChanged(false),
-                ];
-
-                $quoted_values = [];
-                foreach ($types as $k => $t) {
-                    $quoted_values[] = $DIC->database()->quote($values[$k], $t);
-                }
-                $insert = vsprintf($insert, $quoted_values);
+            $timestamp = $queue->getTimestamp(false);
+            $crs_start = $queue->getCourseStart(false);
+            $crs_end = $queue->getCourseEnd(false);
+            $usr_data = $queue->getUserData()->__toString();
+            $obj_data = $queue->getObjData()->__toString();
+            $mem_data = $queue->getMemData()->__toString();
+            $progress_changed = $queue->getProgressChanged(false);
+            if (is_string($progress_changed) && !is_numeric($progress_changed)) {
+                $progress_changed = strtotime($progress_changed);
             }
 
-            // Save to database
-            $DIC->database()->manipulateF(
-                $insert,
-                $types,
-                $values
-            );
+            foreach (['addParticipant', 'updateStatus'] as $event) {
+                // Save to database
+                $DIC->database()->execute(
+                    $this->getStatement(),
+                    [
+                        $DIC->database()->nextId(AbstractEvent::DB_TABLE),
+                        $timestamp,
+                        $event,
+                        $this->mapEventToType($event),
+                        $queue->getProgress(),
+                        $queue->getAssignment(),
+                        $crs_start,
+                        $crs_end,
+                        $usr_data,
+                        $obj_data,
+                        $mem_data,
+                        $progress_changed
+                    ]
+                );
+            }
 
             // Free the space by unsetting $queue
             unset($queue);
@@ -522,7 +548,6 @@ class ilQueueInitializationJob extends AbstractJob
             unset($data);
 
             return true;
-
         } catch (Exception $e) {
             $this->logMessage('initial queue collection Error:' . "\n" . $e->getMessage(), 'error');
 
@@ -851,5 +876,7 @@ class ilQueueInitializationJob extends AbstractJob
 
         // Save the "events"
         $this->save($aggregated);
+
+        unset($aggregated);
     }
 }
