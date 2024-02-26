@@ -25,7 +25,7 @@ class InitialQueueCollector
     /** @var null|array<int, array{0: int, 1: null|string}> */
     private ?array $tree = null;
 
-    public static function singleton(): self
+    public static function singleton() : self
     {
         if (!self::$instance) {
             self::$instance = new self();
@@ -37,10 +37,15 @@ class InitialQueueCollector
     /**
      * Collect Base Data
      * Collects the base data, required to capture all other relevant queue data.
+     * @param null|list<int> $learning_progress_status
      * @return \Generator<array<string, mixed>>
      */
-    public function collectBaseDataFromDB(int $start = 0, int $end = 1000, string $type = 'role_assignments'): \Generator
-    {
+    public function collectBaseDataFromDB(
+        int $start = 0,
+        int $end = 1000,
+        string $type = 'role_assignments',
+        ?array $learning_progress_status = null
+    ) : \Generator {
         global $DIC;
 
         $result = $DIC->database()->query($this->getBaseDataQuery([
@@ -54,7 +59,7 @@ class InitialQueueCollector
             'od.title',
             'cs.crs_start',
             'cs.crs_end'
-        ], false, [$start, $end], ['oref.ref_id', 'ASC'], $type));
+        ], false, [$start, $end], ['oref.ref_id', 'ASC'], $type, $learning_progress_status));
 
         while ($row = $DIC->database()->fetchAssoc($result)) {
             yield $row;
@@ -67,15 +72,18 @@ class InitialQueueCollector
     /**
      * Count Base Data
      * Get the count of all rows, that could be collected by collectBaseDataFromDB
+     * @param null|list<int> $learning_progress_status
      * @see collectBaseDataFromDB
      */
-    public function countBaseDataFromDB(string $type = 'role_assignments'): int
-    {
+    public function countBaseDataFromDB(
+        string $type = 'role_assignments',
+        ?array $learning_progress_status = null
+    ) : int {
         global $DIC;
 
         $result = $DIC->database()->query($this->getBaseDataQuery([
             $type === 'role_assignments' ? 'COUNT(rua.usr_id) AS count' : 'COUNT(DISTINCT `od`.`obj_id`, `ulm`.`usr_id`) AS count'
-        ], false, [], [], $type, true));
+        ], false, [], [], $type, $learning_progress_status, true));
 
         return (int) ($DIC->database()->fetchAll($result)[0]['count'] ?? 0);
     }
@@ -83,15 +91,25 @@ class InitialQueueCollector
     /**
      * Collect User Data
      * collects all user data, enclosed by the list of user ids from collectBaseDataFromDB
+     * @param null|list<int> $learning_progress_status
      * @return array<int, array<string, mixed>>
      * @see getBaseDataQuery
      * @see collectBaseDataFromDB
      */
-    public function collectUserDataFromDB(string $type = 'role_assignments'): array
-    {
+    public function collectUserDataFromDB(
+        string $type = 'role_assignments',
+        ?array $learning_progress_status = null
+    ) : array {
         global $DIC;
 
-        $user_id_subq = $this->getBaseDataQuery([$type === 'role_assignments' ? 'rua.usr_id' : 'ulm.usr_id'], true, [], [], $type);
+        $user_id_subq = $this->getBaseDataQuery(
+            [$type === 'role_assignments' ? 'rua.usr_id' : 'ulm.usr_id'],
+            true,
+            [],
+            [],
+            $type,
+            $learning_progress_status
+        );
 
         $query = 'SELECT `ud`.`usr_id`
 	,`ud`.`login` ,`ud`.`firstname` ,`ud`.`lastname` ,`ud`.`title` ,`ud`.`gender` ,`ud`.`email` ,`ud`.`institution` 
@@ -149,7 +167,7 @@ ORDER BY udf.usr_id';
      * @param int $ref_id Ref ID of the current (non-course) object.
      * @return int          Returns the parent Ref ID if a parent course is found. Otherwise -1.
      */
-    public function findParentCourse(int $ref_id): int
+    public function findParentCourse(int $ref_id) : int
     {
         global $DIC;
 
@@ -198,7 +216,7 @@ ORDER BY tr_child.child';
      * @param int $ref_id Ref ID of the current (course) object.
      * @return null|array<string, mixed>
      */
-    public function collectCourseDataByRefId(int $ref_id): ?array
+    public function collectCourseDataByRefId(int $ref_id) : ?array
     {
         global $DIC;
 
@@ -229,6 +247,7 @@ ORDER BY tr_child.child';
      * @param array{0: int, 1: int}|array{} $page Database limit pagination. Array [<int>Start , <int>End]
      * @param array{0: string, 1: string}|array{} $order Query result order. Array [<string>Field , <string>Direction]
      * @param string $type Specific object type to get. Default "*" is used top get all.
+     * @param null|list<int> $learning_progress_status
      * @return string
      */
     private function getBaseDataQuery(
@@ -237,9 +256,30 @@ ORDER BY tr_child.child';
         array $page = [],
         array $order = [],
         string $type = 'role_assignments',
+        ?array $learning_progress_status = null,
         bool $is_count = false
-    ): string {
+    ) : string {
         global $DIC;
+
+        $included_learning_progress_status = '';
+        if ($learning_progress_status !== null) {
+            if ($type === 'role_assignments'
+                && in_array(\ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM, $learning_progress_status, true)) {
+                $included_learning_progress_status = ' AND (`ulm`.`status` IS NULL OR ' . $DIC->database()->in(
+                        $DIC->database()->quoteIdentifier('ulm') . '.' . $DIC->database()->quoteIdentifier('status'),
+                        $learning_progress_status,
+                        false,
+                        \ilDBConstants::T_INTEGER
+                    ) . ')';
+            } else {
+                $included_learning_progress_status = ' AND ' . $DIC->database()->in(
+                        $DIC->database()->quoteIdentifier('ulm') . '.' . $DIC->database()->quoteIdentifier('status'),
+                        $learning_progress_status,
+                        false,
+                        \ilDBConstants::T_INTEGER
+                    ) . ' ';
+            }
+        }
 
         if ($type === 'role_assignments') {
             $type_white_list = [];
@@ -264,7 +304,8 @@ LEFT JOIN `ut_lp_marks` `ulm`
 LEFT JOIN `crs_settings` `cs`
     ON `od`.`obj_id` = `cs`.`obj_id`
 WHERE `oref`.`deleted` IS NULL
-AND ' . $DIC->database()->in('od.type', $type_white_list, false, \ilDBConstants::T_TEXT);
+AND ' . $DIC->database()->in('od.type', $type_white_list, false,
+                    \ilDBConstants::T_TEXT) . $included_learning_progress_status;
         } else {
             $type_white_list = [];
             foreach ($DIC['objDefinition']->getAllRepositoryTypes() as $obj_type) {
@@ -277,7 +318,7 @@ AND ' . $DIC->database()->in('od.type', $type_white_list, false, \ilDBConstants:
 FROM `object_data` `od`
 INNER JOIN `object_reference` `oref` ON `oref`.`obj_id` = `od`.`obj_id` AND `oref`.`deleted` IS NULL
 INNER JOIN `tree` `tr` ON `tr`.`child` = `oref`.`ref_id` AND `tr`.`tree` = 1
-INNER JOIN `ut_lp_marks` `ulm`  ON `ulm`.`obj_id` = `oref`.`obj_id`
+INNER JOIN `ut_lp_marks` `ulm`  ON `ulm`.`obj_id` = `oref`.`obj_id` ' . $included_learning_progress_status . '
 INNER JOIN `usr_data` `ud` ON `ud`.`usr_id` = `ulm`.`usr_id`
 LEFT JOIN `crs_settings` `cs` ON `cs`.`obj_id` = `od`.`obj_id`
 WHERE ' . $DIC->database()->in('od.type', $type_white_list, false, \ilDBConstants::T_TEXT);

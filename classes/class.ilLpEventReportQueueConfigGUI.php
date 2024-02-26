@@ -50,6 +50,7 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
         $this->plugin = ilLpEventReportQueuePlugin::getInstance();
         $this->ctrl = $DIC->ctrl();
         $this->lng = $DIC->language();
+        $this->lng->loadLanguageModule('trac');
         $this->tpl = $DIC->ui()->mainTemplate();
         $this->tabs = $DIC->tabs();
         $this->settings = $DIC->settings();
@@ -188,10 +189,57 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
             $rid->addOption(new ilRadioOption($this->plugin->txt('obj_select_type_ref_id_first_read'), 'first_read'));
             $rid->setValue('all');
             $lpd->addSubItem($rid);
+            $lps_role_assignment = new ilCheckboxGroupInputGUI(
+                $this->plugin->txt('included_learning_progress_types'),
+                'included_learning_progress_types_lpd'
+            );
+            $lps_role_assignment->setInfo($this->plugin->txt('included_learning_progress_types_info'));
+            $lps_role_assignment->addOption(
+                new ilCheckboxOption($this->lng->txt('trac_completed'), ilLPStatus::LP_STATUS_COMPLETED_NUM)
+            );
+            $lps_role_assignment->addOption(
+                new ilCheckboxOption($this->lng->txt('trac_in_progress'), ilLPStatus::LP_STATUS_IN_PROGRESS_NUM)
+            );
+            $lps_role_assignment->addOption(
+                new ilCheckboxOption($this->lng->txt('trac_failed'), ilLPStatus::LP_STATUS_FAILED_NUM)
+            );
+            $lps_role_assignment->addOption(
+                new ilCheckboxOption($this->lng->txt('trac_not_attempted'), ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM)
+            );
+            $lps_role_assignment->setValue([
+                ilLPStatus::LP_STATUS_COMPLETED_NUM,
+                ilLPStatus::LP_STATUS_IN_PROGRESS_NUM,
+                ilLPStatus::LP_STATUS_FAILED_NUM,
+            ]);
+            $lpd->addSubItem($lps_role_assignment);
             $rad = new ilRadioOption($this->plugin->txt('obj_select_type_role_assignments'), 'role_assignments');
             $os->addOption($lpd);
             $os->addOption($rad);
             $os->setValue('learning_progress');
+            $lps_role_assignment = new ilCheckboxGroupInputGUI(
+                $this->plugin->txt('included_learning_progress_types'),
+                'included_learning_progress_types_rad'
+            );
+            $lps_role_assignment->setInfo($this->plugin->txt('included_learning_progress_types_info'));
+            $lps_role_assignment->addOption(
+                new ilCheckboxOption($this->lng->txt('trac_completed'), ilLPStatus::LP_STATUS_COMPLETED_NUM)
+            );
+            $lps_role_assignment->addOption(
+                new ilCheckboxOption($this->lng->txt('trac_in_progress'), ilLPStatus::LP_STATUS_IN_PROGRESS_NUM)
+            );
+            $lps_role_assignment->addOption(
+                new ilCheckboxOption($this->lng->txt('trac_failed'), ilLPStatus::LP_STATUS_FAILED_NUM)
+            );
+            $lps_role_assignment->addOption(
+                new ilCheckboxOption($this->lng->txt('trac_not_attempted'), ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM)
+            );
+            $lps_role_assignment->setValue([
+                ilLPStatus::LP_STATUS_COMPLETED_NUM,
+                ilLPStatus::LP_STATUS_IN_PROGRESS_NUM,
+                ilLPStatus::LP_STATUS_FAILED_NUM,
+            ]);
+            $rad->addSubItem($lps_role_assignment);
+            
             $form->addItem($os);
 
             $form->addCommandButton('startInitialization', $this->plugin->txt('start_initialization'));
@@ -441,6 +489,8 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
         $factory = $this->backgroundTasks->taskFactory();
         $taskManager = $this->backgroundTasks->taskManager();
 
+        $obj_select = $DIC->http()->wrapper()->post()->retrieve('obj_select', $DIC->refinery()->kindlyTo()->string());
+
         $task_info = [
             'lock' => false,
             'state' => \QU\LERQ\BackgroundTasks\AbstractJobDefinition::JOB_STATE_INIT,
@@ -450,10 +500,17 @@ class ilLpEventReportQueueConfigGUI extends ilPluginConfigGUI
             'started_ts' => time(),
             'finished_ts' => null,
             'last_item' => 0,
-            'obj_select' => $DIC->http()->wrapper()->post()->retrieve('obj_select', $DIC->refinery()->kindlyTo()->string()),
+            'obj_select' => $obj_select,
             'ref_id_determination' => $DIC->http()->wrapper()->post()->retrieve(
                 'ref_id_determination',
                 $DIC->refinery()->byTrying([$DIC->refinery()->kindlyTo()->string(), $DIC->refinery()->always('all')])
+            ),
+            'learning_progress_status' => $DIC->http()->wrapper()->post()->retrieve(
+                'included_learning_progress_types_' . ($obj_select === 'learning_progress' ? 'lpd' : 'rad'),
+                $DIC->refinery()->byTrying([
+                    $DIC->refinery()->kindlyTo()->listOf($DIC->refinery()->kindlyTo()->int()),
+                    $DIC->refinery()->always([])
+                ])
             ),
         ];
         $DIC->settings()->set('lerq_bgtask_init', json_encode($task_info, JSON_THROW_ON_ERROR));

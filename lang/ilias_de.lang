@@ -54,6 +54,8 @@ obj_select_type_ref_id_first_read#:#Erste Referenz-ID mit Lesezugriff der betrof
 obj_select_type_ref_id_all_read#:#Alle Referenz-IDs mit Lesezugriff der betroffenen Person
 obj_all#:#Alle Objekte
 obj_only_course#:#Nur Kurse
+included_learning_progress_types#:#Relevante Lernfortschritte
+included_learning_progress_types_info#:#Bitte wählen Sie hier, welche Lernfortschritte berücksichtigt werden sollen. Sofern keine Auswahl getroffen wird, wird keinerlei Einschränkung bei der Ermittlung vorgenomen.
 saving_invoked#:#Speichern erfolgreich
 queue_protocol#:#Protokoll
 tbl_col_event_id#:#Event-ID
