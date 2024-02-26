@@ -54,6 +54,8 @@ obj_select_type_ref_id_first_read#:#First Reference ID with Read Permission
 obj_select_type_ref_id_all_read#:#All Reference IDs with Read Permission
 obj_all#:#All objects
 obj_only_course#:#Only courses
+included_learning_progress_types#:#Relevant Learning Progress Status
+included_learning_progress_types_info#:#Please select the relevant learning progress status. If not selection is made, all learning progress status will be considered.
 saving_invoked#:#Successful saved
 queue_protocol#:#Protocol
 tbl_col_event_id#:#Event Id

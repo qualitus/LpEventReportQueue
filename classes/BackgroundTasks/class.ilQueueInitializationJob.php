@@ -98,7 +98,10 @@ class ilQueueInitializationJob extends AbstractJob
         // Get object selection setting, collect usr data, count base data and update task
         $type_select = $task_info['obj_select'] ?? 'role_assignments';
         $ref_id_determination = $task_info['ref_id_determination'] ?? 'all';
-        $found = $collector->countBaseDataFromDB($type_select);
+        /** @var null|list<int> $learning_progress */
+        $learning_progress = $task_info['learning_progress_status'] ?? null;
+
+        $found = $collector->countBaseDataFromDB($type_select, $learning_progress);
 
         $this->logMessage(
             sprintf(
@@ -120,7 +123,7 @@ class ilQueueInitializationJob extends AbstractJob
         $stepcount = 2000;
 
         // Read all user data
-        $user_data = $collector->collectUserDataFromDB($type_select);
+        $user_data = $collector->collectUserDataFromDB($type_select, $learning_progress);
 
         $this->logMessage(
             sprintf(
@@ -143,7 +146,7 @@ class ilQueueInitializationJob extends AbstractJob
         $ref_id_determination = 'first_read';
 
         while (true) {
-            $iterator = $collector->collectBaseDataFromDB($start, $stepcount, $type_select);
+            $iterator = $collector->collectBaseDataFromDB($start, $stepcount, $type_select, $learning_progress);
 
             $this->logMessage(
                 sprintf(
