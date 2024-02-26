@@ -1,301 +1,260 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\Model;
 
-/**
- * Class ObjectModel
- * @package QU\LERQ\Model
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
 class ObjectModel
 {
-	/** @var string */
-	private $title;
-	/** @var int */
-	private $id;
-	/** @var int */
-	private $ref_id;
-	/** @var string */
-	private $link;
-	/** @var string */
-	private $type;
-	/** @var string */
-	private $type_hr;
-	/** @var string */
-	private $course_title;
-	/** @var int */
-	private $course_id;
-	/** @var int */
-	private $course_ref_id;
+    private ?string $title = null;
+    private ?int $id = null;
+    private ?int $ref_id = null;
+    private ?string $link = null;
+    private ?string $type = null;
+    private ?string $type_hr = null;
+    private ?string $course_title = null;
+    private ?int $course_id = null;
+    private ?int $course_ref_id = null;
 
-	/**
-	 * @return string
-	 */
-	public function getTitle(): string
-	{
-		return (isset($this->title) ? $this->title : '');
-	}
+    public function getTitle(): string
+    {
+        return $this->title ?? '';
+    }
 
-	/**
-	 * @param string $title
-	 * @return ObjectModel
-	 */
-	public function setTitle($title): ObjectModel
-	{
-		$this->title = $title;
-		return $this;
-	}
+    /**
+     * @param string $title
+     */
+    public function setTitle($title): self
+    {
+        $this->title = $title;
+        return $this;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getId(): int
-	{
-		return (isset($this->id) ? $this->id : -1);
-	}
+    public function getId(): int
+    {
+        return $this->id ?? -1;
+    }
 
-	/**
-	 * @param int $id
-	 * @return ObjectModel
-	 */
-	public function setId($id): ObjectModel
-	{
-		$this->id = $id;
-		return $this;
-	}
+    /**
+     * @param int $id
+     */
+    public function setId($id): self
+    {
+        $this->id = is_numeric($id) ? (int) $id : $id;
+        return $this;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getRefId(): int
-	{
-		return (isset($this->ref_id) ? $this->ref_id : -1);
-	}
+    public function getRefId(): int
+    {
+        return $this->ref_id ?? -1;
+    }
 
-	/**
-	 * @param int $ref_id
-	 * @return ObjectModel
-	 */
-	public function setRefId($ref_id): ObjectModel
-	{
-		$this->ref_id = $ref_id;
-		return $this;
-	}
+    /**
+     * @param int $ref_id
+     */
+    public function setRefId($ref_id): self
+    {
+        $this->ref_id = is_numeric($ref_id) ? (int) $ref_id : $ref_id;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getLink(): string
-	{
-		return (isset($this->link) ? $this->link : '');
-	}
+    public function getLink(): string
+    {
+        return $this->link ?? '';
+    }
 
-	/**
-	 * @param string $link
-	 * @return ObjectModel
-	 */
-	public function setLink($link): ObjectModel
-	{
-		$this->link = $link;
-		return $this;
-	}
+    /**
+     * @param string $link
+     */
+    public function setLink($link): self
+    {
+        $this->link = $link;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getType(): string
-	{
-		return (isset($this->type) ? $this->type : '');
-	}
+    public function getType(): string
+    {
+        return $this->type ?? '';
+    }
 
-	/**
-	 * @param string $type
-	 * @return ObjectModel
-	 */
-	public function setType($type): ObjectModel
-	{
-		$this->type = $type;
-		return $this;
-	}
+    /**
+     * @param string $type
+     */
+    public function setType($type): self
+    {
+        $this->type = $type;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getTypeHr(): string
-	{
-		return (isset($this->type_hr) ? $this->type_hr : $this->translateType());
-	}
+    public function getTypeHr(): string
+    {
+        return $this->type_hr ?? $this->translateType();
+    }
 
-	/**
-	 * @param string $type_hr
-	 * @return ObjectModel
-	 */
-	public function setTypeHr($type_hr): ObjectModel
-	{
-		$this->type_hr = $type_hr;
-		return $this;
-	}
+    /**
+     * @param string $type_hr
+     */
+    public function setTypeHr($type_hr): self
+    {
+        $this->type_hr = $type_hr;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getCourseTitle(): string
-	{
-		return (isset($this->course_title) ? $this->course_title : '');
-	}
+    public function getCourseTitle(): string
+    {
+        return $this->course_title ?? '';
+    }
 
-	/**
-	 * @param string $course_title
-	 * @return ObjectModel
-	 */
-	public function setCourseTitle($course_title): ObjectModel
-	{
-		$this->course_title = $course_title;
-		return $this;
-	}
+    /**
+     * @param string $course_title
+     */
+    public function setCourseTitle($course_title): self
+    {
+        $this->course_title = $course_title;
+        return $this;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getCourseId(): int
-	{
-		return (isset($this->course_id) ? $this->course_id : -1);
-	}
+    public function getCourseId(): int
+    {
+        return $this->course_id ?? -1;
+    }
 
-	/**
-	 * @param int $course_id
-	 * @return ObjectModel
-	 */
-	public function setCourseId($course_id): ObjectModel
-	{
-		$this->course_id = $course_id;
-		return $this;
-	}
+    /**
+     * @param int $course_id
+     */
+    public function setCourseId($course_id): self
+    {
+        $this->course_id = is_numeric($course_id) ? (int) $course_id : $course_id;
+        return $this;
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getCourseRefId(): int
-	{
-		return (isset($this->course_ref_id) ? $this->course_ref_id : -1);
-	}
+    public function getCourseRefId(): int
+    {
+        return $this->course_ref_id ?? -1;
+    }
 
-	/**
-	 * @param int $course_ref_id
-	 * @return ObjectModel
-	 */
-	public function setCourseRefId($course_ref_id): ObjectModel
-	{
-		$this->course_ref_id = $course_ref_id;
-		return $this;
-	}
+    /**
+     * @param int $course_ref_id
+     */
+    public function setCourseRefId($course_ref_id): self
+    {
+        $this->course_ref_id = is_numeric($course_ref_id) ? (int) $course_ref_id : $course_ref_id;
+        return $this;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function translateType(): string
-	{
-		if ($this->getType() !== '') {
-			switch ($this->getType()) {
-				case 'adm':
-					return 'SystemFolder';
-					break;
-				case 'assf':
-					return 'AssessentFolder';
-					break;
-				case 'bibl':
-					return 'Bibliographic';
-					break;
-				case 'blog':
-					return 'Blog';
-					break;
-				case 'book':
-					return 'BookingPool';
-					break;
-				case 'cat':
-					return 'Category';
-					break;
-				case 'catr':
-					return 'CategoryReference';
-					break;
-				case 'crs':
-					return 'Course';
-					break;
-				case 'crsr':
-					return 'CourseReference';
-					break;
-				case 'dcl':
-					return 'DataCollection';
-					break;
-				case 'exc':
-					return 'Excercise';
-					break;
-				case 'fold':
-					return 'Folder';
-					break;
-				case 'frm':
-					return 'Forum';
-					break;
-				case 'glo':
-					return 'Glossary';
-					break;
-				case 'grp':
-					return 'Group';
-					break;
-				case 'grpr':
-					return 'GroupReference';
-					break;
-				case 'iass':
-					return 'IndividualAssessment';
-					break;
-				case 'lm':
-					return 'LearningModule';
-					break;
-				case 'prg':
-					return 'StudyProgramme';
-					break;
-				case 'role':
-					return 'Role';
-					break;
-				case 'rolf':
-					return 'RoleFolder';
-					break;
-				case 'sahs':
-					return 'SAHSLearningModule';
-					break;
-				case 'sess':
-					return 'Session';
-					break;
-				case 'trac':
-					return 'UserTracking';
-					break;
-				case 'tst':
-					return 'Test';
-					break;
-				case 'usr':
-					return 'User';
-					break;
-			}
-		}
-		return '';
-	}
+    public function translateType(): string
+    {
+        if ($this->getType() !== '') {
+            switch ($this->getType()) {
+                case 'adm':
+                    return 'SystemFolder';
 
-	/**
-	 * @return false|string
-	 */
-	public function __toString()
-	{
-		return json_encode([
-			'id' => $this->getId(),
-			'title' => $this->getTitle(),
-			'ref_id' => $this->getRefId(),
-			'link' => $this->getLink(),
-			'type' => $this->getType(),
-			'type_hr' => $this->getTypeHr(),
-			'course_title' => $this->getCourseTitle(),
-			'course_id' => $this->getCourseId(),
-			'course_ref_id' => $this->getCourseRefId(),
-		]);
-	}
+                case 'assf':
+                    return 'AssessentFolder';
+
+                case 'bibl':
+                    return 'Bibliographic';
+
+                case 'blog':
+                    return 'Blog';
+
+                case 'book':
+                    return 'BookingPool';
+
+                case 'cat':
+                    return 'Category';
+
+                case 'catr':
+                    return 'CategoryReference';
+
+                case 'crs':
+                    return 'Course';
+
+                case 'crsr':
+                    return 'CourseReference';
+
+                case 'dcl':
+                    return 'DataCollection';
+
+                case 'exc':
+                    return 'Excercise';
+
+                case 'fold':
+                    return 'Folder';
+
+                case 'frm':
+                    return 'Forum';
+
+                case 'glo':
+                    return 'Glossary';
+
+                case 'grp':
+                    return 'Group';
+
+                case 'grpr':
+                    return 'GroupReference';
+
+                case 'iass':
+                    return 'IndividualAssessment';
+
+                case 'lm':
+                    return 'LearningModule';
+
+                case 'prg':
+                    return 'StudyProgramme';
+
+                case 'role':
+                    return 'Role';
+
+                case 'rolf':
+                    return 'RoleFolder';
+
+                case 'sahs':
+                    return 'SAHSLearningModule';
+
+                case 'sess':
+                    return 'Session';
+
+                case 'trac':
+                    return 'UserTracking';
+
+                case 'tst':
+                    return 'Test';
+
+                case 'usr':
+                    return 'User';
+            }
+        }
+
+        return '';
+    }
+
+    public function __toString(): string
+    {
+        return json_encode([
+            'id' => $this->getId(),
+            'title' => $this->getTitle(),
+            'ref_id' => $this->getRefId(),
+            'link' => $this->getLink(),
+            'type' => $this->getType(),
+            'type_hr' => $this->getTypeHr(),
+            'course_title' => $this->getCourseTitle(),
+            'course_id' => $this->getCourseId(),
+            'course_ref_id' => $this->getCourseRefId(),
+        ], JSON_THROW_ON_ERROR);
+    }
 }

@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /**
  * This file is part of ILIAS, a powerful learning management system
@@ -14,12 +14,16 @@
  * https://www.ilias.de
  * https://github.com/ILIAS-eLearning
  *
- ********************************************************************
- */
+ *********************************************************************/
+
+declare(strict_types=1);
 
 namespace QU\LERQ\UI\Table;
 
 interface Formatter
 {
-    public function format($value) : string;
+    /**
+     * @param mixed $value
+     */
+    public function format($value): string;
 }

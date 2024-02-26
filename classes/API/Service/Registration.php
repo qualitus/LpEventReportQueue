@@ -1,228 +1,217 @@
 <?php
-/* Copyright (c) 1998-2011 ILIAS open source, Extended GPL, see docs/LICENSE */
+
+/**
+ * This file is part of ILIAS, a powerful learning management system
+ * published by ILIAS open source e-Learning e.V.
+ *
+ * ILIAS is licensed with the GPL-3.0,
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ * You should have received a copy of said license along with the
+ * source code, too.
+ *
+ * If this is not the case or you just want to try ILIAS, you'll find
+ * us at:
+ * https://www.ilias.de
+ * https://github.com/ILIAS-eLearning
+ *
+ *********************************************************************/
 
 namespace QU\LERQ\API\Service;
 
+use Exception;
+use ilDBConstants;
 use QU\LERQ\API\DataCaptureRoutinesInterface;
 use QU\LERQ\Model\ProviderModel;
 use QU\LERQ\Model\RoutinesModel;
+use Throwable;
 
-/**
- * Class Registration
- * @package QU\LERQ\API\Service
- * @author Ralph Dittrich <dittrich@qualitus.de>
- */
 class Registration
 {
-	const DB_PROVIDER_REG = 'lerq_provider_register';
+    public const DB_PROVIDER_REG = 'lerq_provider_register';
 
-	/**
-	 * @return array
-	 */
-	public function load()
-	{
-		return $this->_load();
-	}
+    /**
+     * @return array<string, ProviderModel>
+     */
+    public function load(): array
+    {
+        return $this->_load();
+    }
 
-	/**
-	 * @param string $name
-	 * @return bool|ProviderModel
-	 */
-	public function loadByName(string $name)
-	{
-		$providers = $this->_load();
-		/** @var ProviderModel $provider */
-		foreach ($providers as $provider) {
-			if ($provider->getName() === $name) {
-				return $provider;
-			}
-		}
-		return false;
-	}
+    /**
+     * @return false|ProviderModel
+     */
+    public function loadByName(string $name)
+    {
+        $providers = $this->_load();
+        /** @var ProviderModel $provider */
+        foreach ($providers as $provider) {
+            if ($provider->getName() === $name) {
+                return $provider;
+            }
+        }
 
-	/**
-	 * @param string $namespace
-	 * @return bool|ProviderModel
-	 */
-	public function loadByNamespace(string $namespace)
-	{
-		$providers = $this->_load();
-		/** @var ProviderModel $provider */
-		foreach ($providers as $provider) {
-			if ($provider->getNamespace() === $namespace) {
-				return $provider;
-			}
-		}
-		return false;
-	}
+        return false;
+    }
 
-	/**
-	 * @param string $name
-	 * @param string $namespace
-	 * @param string $path
-	 * @param bool $hasOverrides
-	 * @return bool
-	 */
-	public function create(string $name, string $namespace, string $path, bool $hasOverrides = false)
-	{
-		if (!$this->loadByNamespace($namespace)) {
-			$provider = new ProviderModel();
-			$provider->setName($name)
-				->setNamespace($namespace)
-				->setPath($path)
-				->setHasOverrides($hasOverrides);
+    /**
+     * @return false|ProviderModel
+     */
+    public function loadByNamespace(string $namespace)
+    {
+        $providers = $this->_load();
+        foreach ($providers as $provider) {
+            if ($provider->getNamespace() === $namespace) {
+                return $provider;
+            }
+        }
 
-			$routines = new RoutinesModel();
-			if ($hasOverrides) {
-				try {
-					$routines_path = $path . '/CaptureRoutines/Routines.php'; // @Todo get a better way to find the file!
-					require_once $routines_path;
-					$class = $namespace . '\Routines';
-					$overrideClass = new $class();
-					if ($overrideClass instanceof DataCaptureRoutinesInterface) {
-						$overrides = $overrideClass->getOverrides();
-						// @Todo change setters below to prevent errors if provider does not support newest overrides (isset() ? :)
-						$routines->setCollectUserData($overrides['collectUserData'])
-							->setCollectUDFData($overrides['collectUDFData'])
-							->setCollectMemberData($overrides['collectMemberData'])
-							->setCollectLpPeriod($overrides['collectLpPeriod'])
-							->setCollectObjectData($overrides['collectObjectData']);
-					}
-				} catch (\Exception $e) {
-					global $DIC;
+        return false;
+    }
 
-					$DIC->logger()->root()->error($e->getMessage());
-					return false;
-				}
-			}
+    public function create(string $name, string $namespace, string $path, bool $hasOverrides = false): bool
+    {
+        if (!$this->loadByNamespace($namespace)) {
+            $provider = new ProviderModel();
+            $provider->setName($name)
+                ->setNamespace($namespace)
+                ->setPath($path)
+                ->setHasOverrides($hasOverrides);
 
-			$provider->setActiveOverrides($routines);
+            $routines = new RoutinesModel();
+            if ($hasOverrides) {
+                try {
+                    $routines_path = $path . '/CaptureRoutines/Routines.php'; // @Todo get a better way to find the file!
+                    require_once $routines_path;
+                    $class = $namespace . '\Routines';
+                    $overrideClass = new $class();
+                    if ($overrideClass instanceof DataCaptureRoutinesInterface) {
+                        $overrides = $overrideClass->getOverrides();
+                        // @Todo change setters below to prevent errors if provider does not support newest overrides (isset() ? :)
+                        $routines->setCollectUserData($overrides['collectUserData'] ?? false)
+                            ->setCollectUDFData($overrides['collectUDFData'] ?? false)
+                            ->setCollectMemberData($overrides['collectMemberData'] ?? false)
+                            ->setCollectLpPeriod($overrides['collectLpPeriod'] ?? false)
+                            ->setCollectObjectData($overrides['collectObjectData'] ?? false);
+                    }
+                } catch (Exception $e) {
+                    global $DIC;
 
-			return $this->_save($provider);
-		}
-		return true;
-	}
+                    $DIC->logger()->root()->error($e->getMessage());
+                    return false;
+                }
+            }
 
-	/**
-	 * @param string $name
-	 * @param string $namespace
-	 * @param string $path
-	 * @param bool|null $hasOverrides
-	 * @return bool
-	 */
-	public function update(string $name, string $namespace, string $path, bool $hasOverrides = null)
-	{
-		if (($provider = $this->loadByNamespace($namespace)) !== false) {
+            $provider->setActiveOverrides($routines);
 
-			if ($provider->getName() === $name) {
+            return $this->_save($provider);
+        }
 
-				$provider->setPath($path);
-				$provider->setHasOverrides((isset($hasOverrides) ? $hasOverrides : $provider->getHasOverrides()));
+        return true;
+    }
 
-				return $this->_save($provider, true);
-			}
-		}
-		return false;
-	}
+    public function update(string $name, string $namespace, string $path, bool $hasOverrides = null): bool
+    {
+        if ((($provider = $this->loadByNamespace($namespace)) !== false) && $provider->getName() === $name) {
+            $provider->setPath($path);
+            $provider->setHasOverrides($hasOverrides ?? $provider->getHasOverrides());
 
-	/**
-	 * @param string $name
-	 * @param string $namespace
-	 * @return bool
-	 */
-	public function remove(string $name, string $namespace)
-	{
-		if (($provider = $this->loadByNamespace($namespace)) !== false) {
+            return $this->_save($provider, true);
+        }
 
-			if ($provider->getName() === $name) {
-				return $this->_delete($provider);
-			}
-		}
-		return false;
-	}
+        return false;
+    }
 
+    public function remove(string $name, string $namespace): bool
+    {
+        if ((($provider = $this->loadByNamespace($namespace)) !== false) && $provider->getName() === $name) {
+            return $this->_delete($provider);
+        }
 
-	/**
-	 * @return ProviderModel[]
-	 */
-	private function _load(): array
-	{
-		global $DIC;
+        return false;
+    }
 
-		$query = 'SELECT * FROM `' . self::DB_PROVIDER_REG . '` ';
-		$providers = [];
+    /**
+     * @return array<string, ProviderModel>
+     */
+    private function _load(): array
+    {
+        global $DIC;
 
-		$res = $DIC->database()->query($query);
-		while ($row = $DIC->database()->fetchAssoc($res)) {
-			$provider = new ProviderModel();
-			$provider->setName($row['name'])
-				->setNamespace($row['namespace'])
-				->setPath($row['path'])
-				->setHasOverrides(($row['has_overrides'] == true));
+        $query = 'SELECT * FROM `' . self::DB_PROVIDER_REG . '` ';
+        $providers = [];
 
-			$overrides = json_decode($row['active_overrides'], true);
-			$routines = new RoutinesModel();
-			$routines->setCollectUserData($overrides['collectUserData'])
-				->setCollectUDFData($overrides['collectUDFData'])
-				->setCollectMemberData($overrides['collectMemberData'])
-				->setCollectLpPeriod($overrides['collectLpPeriod']);
+        $res = $DIC->database()->query($query);
+        while ($row = $DIC->database()->fetchAssoc($res)) {
+            $provider = new ProviderModel();
+            $provider->setName($row['name'])
+                ->setNamespace($row['namespace'])
+                ->setPath($row['path'])
+                ->setHasOverrides((int) $row['has_overrides'] === 1);
 
-			$provider->setActiveOverrides($routines);
-			$providers[$provider->getName()] = $provider;
-			$provider = null;
-		}
+            try {
+                $overrides = json_decode($row['active_overrides'], true, 512, JSON_THROW_ON_ERROR);
+            } catch (Throwable $e) {
+                $overrides = [];
+            }
 
-		return $providers;
-	}
+            $routines = new RoutinesModel();
+            $routines->setCollectUserData($overrides['collectUserData'] ?? false)
+                ->setCollectUDFData($overrides['collectUDFData'] ?? false)
+                ->setCollectMemberData($overrides['collectMemberData'] ?? false)
+                ->setCollectLpPeriod($overrides['collectLpPeriod'] ?? false);
 
-	/**
-	 * @param ProviderModel $provider
-	 * @return bool
-	 */
-	private function _save(ProviderModel $provider, bool $update = false): bool
-	{
-		global $DIC;
+            $provider->setActiveOverrides($routines);
+            $providers[$provider->getName()] = $provider;
+            $provider = null;
+        }
 
-		if ($update) {
-			$res = $DIC->database()->update(self::DB_PROVIDER_REG,
-				[
-					'path' => array('text', $provider->getPath()),
-					'has_overrides' => array('integer', $provider->getHasOverrides()),
-				],
-				[
-					'name' => array('text', $provider->getName()),
-					'namespace' => array('text', $provider->getNamespace()),
-				]);
-		} else {
-			$res = $DIC->database()->insert(self::DB_PROVIDER_REG,
-				array(
-					'id' => array('integer', $DIC->database()->nextId(self::DB_PROVIDER_REG)),
-					'name' => array('text', $provider->getName()),
-					'namespace' => array('text', $provider->getNamespace()),
-					'path' => array('text', $provider->getPath()),
-					'has_overrides' => array('integer', $provider->getHasOverrides()),
-					'active_overrides' => array('text', $provider->getActiveOverrides()),
-					'created_at' => array('timestamp', date('Y-m-d H:i:s')),
-				)
-			);
-		}
+        return $providers;
+    }
 
-		return ($res === false);
-	}
+    private function _save(ProviderModel $provider, bool $update = false): bool
+    {
+        global $DIC;
 
-	/**
-	 * @param ProviderModel $provider
-	 * @return bool
-	 */
-	private function _delete(ProviderModel $provider): bool
-	{
-		global $DIC;
+        if ($update) {
+            $res = $DIC->database()->update(
+                self::DB_PROVIDER_REG,
+                [
+                    'path' => [ilDBConstants::T_TEXT, $provider->getPath()],
+                    'has_overrides' => [ilDBConstants::T_INTEGER, $provider->getHasOverrides()],
+                    'updated_at' => [ilDBConstants::T_TIMESTAMP, date('Y-m-d H:i:s')],
+                ],
+                [
+                    'name' => [ilDBConstants::T_TEXT, $provider->getName()],
+                    'namespace' => [ilDBConstants::T_TEXT, $provider->getNamespace()],
+                ]
+            );
+        } else {
+            $res = $DIC->database()->insert(
+                self::DB_PROVIDER_REG,
+                [
+                    'id' => [ilDBConstants::T_INTEGER, $DIC->database()->nextId(self::DB_PROVIDER_REG)],
+                    'name' => [ilDBConstants::T_TEXT, $provider->getName()],
+                    'namespace' => [ilDBConstants::T_TEXT, $provider->getNamespace()],
+                    'path' => [ilDBConstants::T_TEXT, $provider->getPath()],
+                    'has_overrides' => [ilDBConstants::T_INTEGER, $provider->getHasOverrides()],
+                    'active_overrides' => [ilDBConstants::T_TEXT, $provider->getActiveOverrides()],
+                    'created_at' => [ilDBConstants::T_TIMESTAMP, date('Y-m-d H:i:s')],
+                ]
+            );
+        }
 
-		$query = 'DELETE FROM ' . self::DB_PROVIDER_REG .
-			' WHERE namespace = ' . $DIC->database()->quote($provider->getNamespace(), 'text') . ';';
+        return $res > 0;
+    }
 
-		$res = $DIC->database()->manipulate($query);
+    private function _delete(ProviderModel $provider): bool
+    {
+        global $DIC;
 
-		return ($res === false);
-	}
+        $query = 'DELETE FROM ' . self::DB_PROVIDER_REG .
+            ' WHERE namespace = ' . $DIC->database()->quote($provider->getNamespace(), ilDBConstants::T_TEXT) . ';';
+
+        $res = $DIC->database()->manipulate($query);
+
+        return $res > 0;
+    }
 }
