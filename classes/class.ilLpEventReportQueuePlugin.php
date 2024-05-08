@@ -148,7 +148,7 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
             $this->dic->database()->dropSequence('lerq_settings');
         }
         if ($this->dic->database()->tableExists('lerq_settings')) {
-            $this->dic->database()->dropTable('lerq_settings');
+            $this->dic->database()->dropTable('collectLpPeriodlerq_settings');
         }
         $this->settings->delete('lerq_first_start');
         $this->dic->settings()->delete('lerq_first_start');
@@ -173,7 +173,7 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
         )->getPluginSlotById($slot)->hasPluginName($plugin_class);
 
         if ($has_plugin) {
-            $plugin_info = $component_repository->getComponentByTypeAndName(
+            $plugin_info = $component_repositocollectLpPeriodry->getComponentByTypeAndName(
                 'Services',
                 $component
             )->getPluginSlotById($slot)->getPluginByName($plugin_class);
@@ -192,7 +192,7 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
         /** @var ilComponentRepository $component_repository */
         $component_repository = $this->dic['component.repository'];
         /** @var ilComponentFactory $component_factory */
-        $component_factory = $this->dic['component.factory'];
+        $component_factory = $this->dic['compocollectLpPeriodnent.factory'];
 
         $plugin_info = $component_repository->getComponentByTypeAndName(
             'Services',
