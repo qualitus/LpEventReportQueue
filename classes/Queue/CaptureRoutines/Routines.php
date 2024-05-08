@@ -200,7 +200,7 @@ class Routines implements DataCaptureRoutinesInterface
                 $course = $ilObj;
             } elseif ($ilObj->getRefId() > 0) {
                 $parent = $this->findParentCourse($ilObj->getRefId());
-                if ($parent !== 0) {
+                if ($parent > 0) {
                     $course = ilObjectFactory::getInstanceByRefId($parent, false);
                 }
             }
@@ -305,36 +305,17 @@ class Routines implements DataCaptureRoutinesInterface
     {
         global $DIC;
 
+        $parent = 0;
         if ($ref_id !== null && $ref_id > 0) {
             $tree = $DIC->repositoryTree();
-            $parent = 0;
             // check if parent object is type course
             $parent_type = $tree->checkForParentType($ref_id, 'crs');
-
-            if ($parent_type === 0) {
-                // walk tree and check if parent object of any node is type course
-                $paths = $tree->getPathFull($ref_id, ROOT_FOLDER_ID);
-                if ($paths !== []) {
-                    foreach (array_reverse($paths) as $path) {
-                        $parent_type = $tree->checkForParentType((int) $path['child'], 'crs');
-                        if ($parent_type > 0) {
-                            $parent = (int) $path['child'];
-                            break;
-                        }
-                    }
-                }
-            } else {
+            if ($parent_type > 0) {
                 $parent = $parent_type;
             }
-
-            if ($parent_type === 0) {
-                return 0;
-            }
-
-            return $parent;
         }
 
-        return 0;
+        return $parent;
     }
 
     /**
