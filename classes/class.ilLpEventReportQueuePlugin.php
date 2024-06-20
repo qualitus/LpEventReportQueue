@@ -148,7 +148,7 @@ class ilLpEventReportQueuePlugin extends \ilCronHookPlugin
             $this->dic->database()->dropSequence('lerq_settings');
         }
         if ($this->dic->database()->tableExists('lerq_settings')) {
-            $this->dic->database()->dropTable('collectLpPeriodlerq_settings');
+            $this->dic->database()->dropTable('lerq_settings');
         }
         $this->settings->delete('lerq_first_start');
         $this->dic->settings()->delete('lerq_first_start');
